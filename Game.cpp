@@ -18,39 +18,55 @@ Game::Game(const Configure &c, const Players &p, Result *result){
     players = p;//プレイヤーをコピーする
     
     for( int i=0; i<5; i++){
-        //cout << players.id[i].mibun << endl;
         players.id[i].cards_num = 0;
     }
     
-    //setSekijun();//席順ベクトルを作成する
-    //setMibun();//身分ベクトルを形成する
     result->setup( &players );//プレイヤー情報で更新する
     
     //最初の手札の決定
     dealCards();//プレイヤたちにカードを分配する
+    
     if( players.isMisalliance() ){//カード交換（搾取）
-        //cout << "CC" << endl;
         //最初の手札通知では、大富豪・富豪には"搾取後"の手札が通知される。
         //一方で大貧民・貧民には"搾取前"の手札が通知される。
-        int DHtoDF[8][15]={{0}};//大貧民から大富豪へ
-        int HtoF[8][15]={{0}};//貧民から富豪へ
-        selectHighCard(DHtoDF, players.id[players.mibunId(DAIHINMIN)].cards, 2);//2枚選び
-        result->addChange(players.mibunId(DAIHINMIN), players.mibunId(DAIFUGO), DHtoDF);//大貧民の交換カードを保存
-        selectHighCard(HtoF, players.id[players.mibunId(HINMIN)].cards, 1);//1枚選び
-        result->addChange(players.mibunId(HINMIN), players.mibunId(FUGO), DHtoDF);//貧民の交換カードを保存
-        addCard(players.id[players.mibunId(DAIFUGO)].cards, DHtoDF);//足す
-        addCard(players.id[players.mibunId(FUGO)].cards, HtoF);//足す
+        int data[8][15] = {{0}};
+        //大貧民から大富豪に
+        selectHighCard(data, players.id[players.mibunId(DAIHINMIN)].cards, 2);//2枚選び
+        result->addChange(players.mibunId(DAIHINMIN), players.mibunId(DAIFUGO), data);//大貧民の交換カードを保存
+        addCard(players.id[players.mibunId(DAIFUGO)].cards, data);//足す
+        memset(data, 0, sizeof(data));
+        //貧民から富豪に
+        selectHighCard(data, players.id[players.mibunId(HINMIN)].cards, 1);//1枚選び
+        result->addChange(players.mibunId(HINMIN), players.mibunId(FUGO), data);//貧民の交換カードを保存
+        addCard(players.id[players.mibunId(FUGO)].cards, data);//足す
+        
     }
     
-    //最初のプレイヤーIDをturnに保存する
-    players.turn = whoHave(0, 1);//ダイヤの3を持つものが最初のターンである
-    //ここで3を持ってる人を知らせては適当でないのでは？
+    players.turn = -1;//交換時にはターンの人が変わる可能性があるのでここでは入れない
     
     //最初の手札を送付する
     int tefuda[5][8][15]={{0}};
     makeTefuda815(tefuda);
     for(int i=0;i<config.PLAYER_NUM;i++){
         tefuda[i][5][0] = 1;//最初なのでカード交換
+        switch(players.id[i].mibun){
+        case DAIFUGO:
+            tefuda[i][5][1] = 2;
+            break;
+        case FUGO:
+            tefuda[i][5][1] = 1;
+            break;
+        case HEIMIN:
+            tefuda[i][5][1] = 0;
+            break;
+        case HINMIN:
+            tefuda[i][5][1] = -1;
+            break;
+        case DAIHINMIN:
+            tefuda[i][5][1] = -2;
+            break;
+        }
+        
         send815(tefuda[i], players.id[i].sockfd );
     }
     
@@ -65,6 +81,8 @@ void Game::start( Result *result){
     }
     
     players.setCardsNum();
+    //最初のプレイヤーIDをturnに保存する
+    players.turn = players.convIDtoSekiNum(whoHave(2, 1));//ダイヤの3を持つものが最初のターンである
     
     while( !isGameEnd() ){//試合が存続中である（順位が決していない）
 
@@ -75,19 +93,14 @@ void Game::start( Result *result){
                 send815( sendTefuda[i], players.id[i].sockfd );
             }
         }
-        
         int data[8][15]={{0}};
         recv815(data, players.id[players.turnId()].sockfd);//現在のターンのプレイヤから提出カードを受け取る
         
-        //players.print();
-        //table.print();
-        PRINT815(players.id[players.turnId()].cards);
-        COUT << " get " << endl;
-        PRINT815(data);
         //提出されたデータの解析
         Yaku yaku;//受け取ったデータの変換先
         int num = 0;//返信用番号
         if( conv815toYaku(&yaku, data) ){//815はそもそも"役"として解釈可能か？
+            //cout<< "hnkn" <<endl;
             //解釈可能ならばyaku形式に変換されている
             if(isSubmittableYaku(yaku)){//提出可能な手か？
                 if(yaku.isPass()){//パスと明示している（UEC標準ルールには存在しない）
@@ -108,12 +121,9 @@ void Game::start( Result *result){
             //cout << "unable to convert into Yaku!" << endl;
             //print815( data );
             //yaku.printBit();
-            
             yaku.demoPass();
             num = 8;
         }
-        //cout << " conv " << endl;
-        //yaku.print();
         
         //役の保存
         Table bTable = table;//提出前の盤面
@@ -122,40 +132,52 @@ void Game::start( Result *result){
         makeNumArray( &numArray );//枚数アレイを作る
         result->addAct( players.turn, bTable, passArray, numArray, yaku );//提出役の記録
         
-        //result->print();
-        //cout << "n" << endl;
+        table.player_id = players.turnId();
+        
         //以下、実際の盤面更新
         switch( num ){
         case 7:
             COUT << 7 << endl;
             send1( 7, players.id[players.turnId()].sockfd );//パスとしてパスをした
-            pass();//パスして
             break;
         case 8:
             COUT << 8 << endl;
             send1( 8, players.id[players.turnId()].sockfd );//パスしたとみなした
-            pass();
             break;
         case 9:
             COUT << 9 << endl;
             //役による盤面更新
             send1( 9, players.id[players.turnId()].sockfd );//提出できた
-            //players[convSekiToPID(turn)].cards_num -= yaku.mNum;
             update(yaku);//プレイヤー情報の更新
             break;
         }
-        //cout << "ee" << endl;
+        
         {//更新された場札を送る
-            int sendBafuda[config.PLAYER_NUM][8][15];
+            int sendBafuda[config.PLAYER_NUM][8][15] = {{0}};
             makeBafuda815( sendBafuda );//加工
-            //cout << " 90 k " << endl;
-            //print815( sendBafuda[0] );
-            for(int i=0; i<config.PLAYER_NUM; i++){
+            for(int i=0; i<5; i++){
                 send815( sendBafuda[i], players.id[i].sockfd );
             }
         }
+            
+        //場札を通知したら、次のプレイヤーに移るが、場が流れることもある
+        switch(num){
+        case 7:
+        case 8:
+            pass();
+            break;
+        case 9:
+            //何かが通知されれば次のプレイヤーに移るが、場が流れることもある
+            if(yaku.is8giri() || (table.isJTanki() && yaku.isSpade3())){
+                purge();
+                break;
+            }
+            players.nextTurn();
+            break;
+        }
         
         {
+            //試合終了の判定
             if(isGameEnd()){
                 //cout << "GE" << endl;
                 //試合が終わってしまった
@@ -172,12 +194,7 @@ void Game::start( Result *result){
                 }
             }
         }
-        /*
-        cout << " cards_num " << endl;
-        for(int i=0; i<5; i++){
-            cout << players.id[i].cards_num << endl;
-        }
-        */
+        
     }//while
     
 }
@@ -185,9 +202,6 @@ void Game::start( Result *result){
 void Game::changeCardsUEC( Result *result ){
     //UECdaルールによる手札の交換
     COUT<<"change"<<endl;
-    int temp_card[8][15];
-    make815Table(temp_card);//テーブルの情報をカードに書き込む
-    make815Player(temp_card);//プレイヤーの情報をカードに書き込む
     
     //Gameコンストラクタですでに搾取されている
     
@@ -196,10 +210,12 @@ void Game::changeCardsUEC( Result *result ){
     int data[8][15] = {{0}};
     recv815(data, players.id[players.mibunId(DAIFUGO)].sockfd);
     if( !checkChangeCardUEC(data, players.id[players.mibunId(DAIFUGO)]) ){//
+        cout << " DAIFUGO change faled " << endl;
         //ダメなら、UECサーバは勝手に搾取してしまうようだ
         memset(data, 0, sizeof(data));
         selectHighCard(data, players.id[players.mibunId(DAIFUGO)].cards, 2);
     }
+    //PRINT815(data);
     result->addChange(players.mibunId(DAIFUGO), players.mibunId(DAIHINMIN), data);//大富豪の交換カードを保存
     deleteCard(players.id[players.mibunId(DAIFUGO)].cards, data);//交換できるなら削除して
     addCard(players.id[players.mibunId(DAIHINMIN)].cards, data);//押し付ける
@@ -208,10 +224,12 @@ void Game::changeCardsUEC( Result *result ){
     memset(data, 0, sizeof(data));
     recv815(data, players.id[players.mibunId(FUGO)].sockfd);
     if( !checkChangeCardUEC(data, players.id[players.mibunId(FUGO)]) ){//
+        cout << " FUGO change faled " << endl;
         //ダメなら、UECサーバは勝手に搾取してしまうようだ
         memset(data, 0, sizeof(data));
         selectHighCard(data, players.id[players.mibunId(FUGO)].cards, 1);
     }
+    //PRINT815(data);
     result->addChange(players.mibunId(FUGO), players.mibunId(HINMIN), data);//富豪の交換カードを保存
     deleteCard(players.id[players.mibunId(FUGO)].cards, data);//交換できるなら削除して
     addCard(players.id[players.mibunId(HINMIN)].cards, data);//押し付ける
@@ -224,29 +242,8 @@ void Game::changeCardsUEC( Result *result ){
             deleteCard(players.id[players.mibunId(DAIHINMIN)].cards, result->mChange[i].mCards);
         }
     }
+    
 }
-/*
-void Game::setMibun(){
-    for(int i=0;i<5;i++){//身分番号
-        for(int j=0;j<players.size();j++){
-            if(players[j].mibun == i){
-                mibun.push_back( j );
-            }
-        }
-    }
-}
-
-void Game::setSekijun(){
-    for(int i=0; i<config.PLAYER_NUM; i++){
-        for(int j=0; j<config.PLAYER_NUM; j++){
-            if(players[j].sekijun == i){
-                sekijun.push_back(j);
-                break;
-            }
-        }
-    }
-}
-*/
 
 void Game::make815Table(int card[8][15]){
     COUT<<"m8t"<<endl;
@@ -313,7 +310,9 @@ void Game::makeNumArray( vector<int> *array ){
 bool Game::isSubmittableYaku(const Yaku &yaku){
     COUT<<"isty"<<endl;
     //提出カードが上に出せるのか
-    if( table.isShibari() && (table.mSuits!=yaku.mSuits) ){
+    
+    //場が縛りで出すスートが異なり、ジョーカー単騎でもない
+    if( table.isShibari() && (table.mSuits!=yaku.mSuits) && !yaku.isJTanki() ){
         COUT << "" << endl;
         return false;
     }
@@ -350,7 +349,7 @@ bool Game::isSubmittableYaku(const Yaku &yaku){
     }else if(table.isTanki()){
         COUT << "tnk" << endl;
         if(yaku.isTanki()){
-            if(table.isJTanki() && yaku.isSpade3()){
+            if(table.mBafuda.isJTanki() && yaku.isSpade3()){
                 return true;
             }else if(yaku.isJTanki()){
                 return true;
@@ -390,44 +389,29 @@ void Game::update(const Yaku &yaku){//役での更新
     if( players.id[players.turnId()].cards_num == 0 ){//あがった
         players.addAgari( players.turnId() );
     }
-    //cout << " b" << endl;
-    if( yaku.is8giri() || (table.isJTanki() && yaku.isSpade3()) ){//場が流れる
-        purge();//流す
-        //turnはそのまま
+    
+    table.mBafuda = yaku;
+    table.setOnset(false);
+    table.mRankL = yaku.mRankL;
+    table.mRankR = yaku.mRankR;
+    table.mNum = yaku.mNum;
+    if(table.mSuits == yaku.mSuits){
+        table.setShibari(1);
+    }else{
+        table.mSuits = yaku.mSuits;
     }
-    else{
-        //cout << "c" << endl;
-        table.mBafuda = yaku;
-        table.setOnset(false);
-        table.mRankL = yaku.mRankL;
-        table.mRankR = yaku.mRankR;
-        table.mNum = yaku.mNum;
-        if(table.mSuits == yaku.mSuits){
-            table.setShibari(1);
-        }else{
-            table.mSuits = yaku.mSuits;
-        }
-        if(yaku.isKaidan()){
-            table.setKaidan(true);
-        }else if(yaku.isPair()){
-            table.setPair(true);
-        }else if(yaku.isTanki()){
-            table.setTanki(true);
-        }
-        //cout << "d" << endl;
-        players.nextTurn();
+    if(yaku.isKaidan()){
+        table.setKaidan(true);
+    }else if(yaku.isPair()){
+        table.setPair(true);
+    }else if(yaku.isTanki()){
+        table.setTanki(true);
     }
-    //cout << "f" << endl;
+    if(yaku.isKakumei()){
+        table.revKakumei();
+    }
+    
 }
-
-/*
-void Game::nextTurn(){
-    turn = (turn + 1) % sekijun.size();
-    while( players[convSekiToPID(turn)].passed == true || players[convSekiToPID(turn)].cards_num==0 ){
-        turn = (turn + 1) % sekijun.size();
-    }
-}
-*/
 
 void Game::purge(){//場を流す
     COUT<<"pur"<<endl;
@@ -517,11 +501,14 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
             yaku->mRankR = 14;
             yaku->mRankL = 0;
             yaku->setSuit(0);
+            yaku->mJposSuit = 0;
+            yaku->mJposRank = 14;
             yaku->setJTanki();
+            
         }else{
             yaku->mRankR = rank[0];
             yaku->mRankL = rank[0];
-            yaku->setSuit(0);
+            yaku->setSuit(suit[0]);
         }
         yaku->setTanki();
     }else if(pair_flag){//それはペアである
@@ -532,6 +519,12 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
         for(int i=0; i<suit.size(); i++){
             yaku->setSuit(suit[i]);
         }
+        for(int i=0; i<suit.size(); i++){//jokerの位置を保存
+            if(fake[i]){
+                yaku->mJposSuit = suit[i];
+                yaku->mJposRank = rank[i];
+            }
+        }
         yaku->setPair();
     }else if(kaidan_flag){//それは階段である
         yaku->set815ToBit( data );
@@ -539,6 +532,12 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
         yaku->mRankL = rank[0];//最初に見つかるものが始点に決まっている
         yaku->mRankR = rank[0]+cards_num-1;
         yaku->setSuit(suit[0]);
+        for(int i=0; i<suit.size(); i++){//jokerの位置を保存
+            if(fake[i]){
+                yaku->mJposSuit = suit[i];
+                yaku->mJposRank = rank[i];
+            }
+        }
         yaku->setKaidan();
     }else{//非受理
         return false;
@@ -566,7 +565,7 @@ void Game::dealCards(){
     }
     
     //deckをshuffle
-    for(int i=0; i<deck.size(); i++){
+    for(int i=0; i<deck.size()*2; i++){
         int a = (int)( (deck.size()-1) * ((double)random()/RAND_MAX));
         int b = (int)( (deck.size()-1) * ((double)random()/RAND_MAX));
         int c = deck[a];
@@ -579,10 +578,12 @@ void Game::dealCards(){
         players.id[i].initCard();
     }
     //deckを一枚ずつ分配していく
-    int target = 0;
+    //身分差があれば大富豪を起点、でなければ席順の若い人を起点
+    int target = players.convIDtoSekiNum( ( players.isMisalliance() ) ? players.mibunId(DAIFUGO) : players.sekijun[0]);//大富豪から
+    
     while( !deck.empty() ){
-        players.id[target].cards[deck[0]/14][deck[0]%14] = 1;//入れて
-        players.id[target].cards_num++;//枚数を増やして
+        players.id[players.sekijun[target]].cards[deck[0]/14][deck[0]%14] = 1;//入れて
+        players.id[players.sekijun[target]].cards_num++;//枚数を増やして
         deck.erase( deck.begin() );//削除
         
         //次の人
@@ -623,13 +624,6 @@ bool checkChangeCardUEC(int data[8][15], Player &player){
     }
 }
 
-/*
-int Game::convSekiToPID(int idx){
-    //idx番の席に座っているプレイヤのIDを返す
-    return sekijun[idx];
-}
-*/
-
 void Game::makeTefuda815(int data[5][8][15]){
     COUT<<"mt8"<<endl;
     //UECda形式の、送信する815形式の配列を作成する
@@ -660,9 +654,11 @@ void Game::makeTefuda815(int data[5][8][15]){
     //盤面部
     int temp[8][15]={{0}};
     //交換フェーズか
+    /*
     if(table.isChangePhase()){
         temp[5][0] = 1;
     }
+    */
     
     //場が流れたか
     if(table.isOnset()){
@@ -686,13 +682,20 @@ void Game::makeTefuda815(int data[5][8][15]){
         //手札の枚数
         temp[6][0+i] = players.id[i].cards_num;
         //階級
+        //temp[6][5+i] = 4-players.id[i].mibun;
         temp[6][5+i] = players.id[i].mibun;
         //席順
         temp[6][10+i] = players.sekijun[i];
-        
-        //現在のターンのプレイヤー番号
-        //temp[5][3] = convSekiToPID(turn);
-        temp[5][3] = players.turnId();
+    }
+    if(!players.isMisalliance()){
+        for(int i=0;i<5;i++){
+            temp[6][5+i] = 0;
+        }
+    }
+    //現在のターンのプレイヤー番号
+    if(players.turn >= 0){
+        temp[5][3] = players.turnId();//ターンの人の番号で正しい
+        //temp[5][3] = players.turn;
     }
     
     //共通部分をコピー
@@ -704,26 +707,14 @@ void Game::makeTefuda815(int data[5][8][15]){
         }
     }
     
-    //各プレイヤーによって違うもの
-    for(int i=0;i<5;i++){
-        //交換枚数
-        if(players.id[i].mibun == DAIFUGO){
-            data[i][5][1] = 2;
-        }else if(players.id[i].mibun == FUGO){
-            data[i][5][1] = 1;
-        }
-        //汝のターンか
-        /*
-        if(convSekiToPID(turn) == players[i].id){
-            data[i][5][2] = 1;
-        }
-        */
+    if(players.turn >= 0){
+        data[players.turnId()][5][2] = 1;
     }
-    data[players.turnId()][5][2] = 1;
 }
 
 void Game::makeBafuda815(int data[5][8][15]){
     COUT<<"mb8"<<endl;
+    
     //UECda形式の、送信する815形式の配列を作成する
     for(int i=0; i<5; i++){//プレイヤー
         for(int j=0; j<8; j++){//スート
@@ -742,30 +733,35 @@ void Game::makeBafuda815(int data[5][8][15]){
             }
         }
     }
-    
     //盤面部
     int temp[8][15]={{0}};
     //交換フェーズか
+    /*
     if(table.isChangePhase()){
         temp[5][0] = 1;
     }
-    
+    */
+    //cout<<2<<endl;
     //場が流れたか
     if(table.isOnset()){
         temp[5][4] = 1;
     }
+    //cout<<3<<endl;
     //イレブンバック
     if(table.is11back()){
         temp[5][5] = 1;
     }
+    //cout<<4<<endl;
     //革命
     if(table.isKakumei()){
         temp[5][6] = 1;
     }
+    //cout<<5<<endl;
     //しばり
     if(table.isShibari()){
         temp[5][7] = 1;
     }
+    //cout<<6<<endl;
     
     //プレイヤー部分
     for(int i=0;i<5;i++){
@@ -778,8 +774,11 @@ void Game::makeBafuda815(int data[5][8][15]){
         
         //現在のターンのプレイヤー番号
         //temp[5][3] = convSekiToPID(turn);
-        temp[5][3] = players.turnId();
+        //temp[5][3] = players.turnId();
+        temp[5][3] = table.player_id;
+        //temp[5][3] = players.turn;
     }
+    //cout<<7<<endl;
     
     //共通部分をコピー
     for(int i=0;i<5;i++){
@@ -790,22 +789,8 @@ void Game::makeBafuda815(int data[5][8][15]){
         }
     }
     
-    //各プレイヤーによって違うもの
-    for(int i=0;i<5;i++){
-        //交換枚数
-        if(players.id[i].mibun == DAIFUGO){
-            data[i][5][1] = 2;
-        }else if(players.id[i].mibun == FUGO){
-            data[i][5][1] = 1;
-        }
-        //汝のターンか
-        /*
-        if(convSekiToPID(turn) == players[i].id){
-            data[i][5][2] = 1;
-        }
-        */
-    }
     data[players.turnId()][5][2] = 1;
+    
 }
 
 bool Game::isGameEnd(){
@@ -828,23 +813,6 @@ bool Game::isGameEnd(){
         return false;
     }
 }
-
-/*
-void Game::sekigae(){
-    int a = (int)( (players.size()-1) * ((double)random()/RAND_MAX));
-    int b = (int)( (players.size()-1) * ((double)random()/RAND_MAX));
-    int c = players.sekijun[a];
-    players.sekijun[a] = players.sekijun[b];
-    players.sekijun[b] = c;
-}
-
-void Game::reset(){
-    sekigae();
-    for(int i=0; i<players.size(); i++){
-        players.mibun[i] = HEIMIN;
-    }
-}
-*/
 
 void Game::pass(){
     COUT<<"pass"<<endl;

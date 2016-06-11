@@ -42,16 +42,14 @@ void selectHighCard(int dest[8][15], int src[8][15], int num){
         if(src[4][14-i]!=0){
             dest[4][14-i]=2;
             n++;
-            break;
         }
     }
     //•’Ê‚ÌƒJ[ƒh‚ð
     for(int i=14; i>=0 && n<num; i--){
-        for(int j=0; j<4; j++){
+        for(int j=0; j<4 && n<num; j++){
             if(src[j][i]!=0){
                 dest[j][i] = 1;
                 n++;
-                break;
             }
         }
     }

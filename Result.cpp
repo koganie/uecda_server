@@ -1,5 +1,8 @@
 #include "Result.h"
+#include "common.h"
+#include "debug.h"
 #include<cstdio>
+#include <iomanip>
 using namespace std;
 
 Action::Action( int id, const Yaku &yaku ){
@@ -23,6 +26,11 @@ Change::Change( int from, int to, const int cards[8][15] ){
             mCards[i][j] = cards[i][j];
         }
     }
+}
+
+void Change::print(){
+    cout << " change : " << mFrom << " " << mTo << endl;
+    print815( mCards );
 }
 
 void Result::addAct( int id, const Yaku &yaku ){
@@ -212,6 +220,7 @@ void Results::calcScore( int num ){
 
 void Results::calcScore( int num ){
     if( num == 1){
+        /*
         for(int i=0; i<1; i++){
             vector<int> temp;
             for(int j=0; j<results[i].mAMibun.size(); j++){
@@ -223,6 +232,13 @@ void Results::calcScore( int num ){
             vector<int> temp;
             for(int j=0; j<results[i].mAMibun.size(); j++){
                 temp.push_back( score[score.size()-1][j] + 5 - results[i].mAMibun[j]);
+            }
+            score.push_back( temp );
+        }*/
+        for(int i=0; i<results.size(); i++){
+            vector<int> temp;
+            for(int j=0; j<results[i].mAMibun.size(); j++){
+                temp.push_back( 5 - results[i].mAMibun[j]);
             }
             score.push_back( temp );
         }
@@ -307,6 +323,7 @@ void Results::calcTransition(){
 }
 
 void Results::print(){
+    /*
     vector<int> finscore;
     for(int i=0; i<5; i++){
         int temp = 0;
@@ -315,14 +332,27 @@ void Results::print(){
         }
         finscore.push_back( temp );
     }
+    */
     for(int i=0; i<5; i++){
         //cout << "Player " << i << " : " << score[i] << endl;
-        cout << i << ":" << name[i] << " = " << finscore[i] << endl;
+        int temp = 0;
+        for(int j=0; j<score.size(); j++){
+            temp += score[j][i];
+        }
+        //cout << i << ":" << name[i] << " = " << score[score.size()-1][i] << endl;
+        cout << i << ":" << name[i] << " = " << temp << endl;
+        
         for(int j=0; j<6; j++){
+            int temp = 0;
             for(int k=0; k<5; k++){
+                temp += transition[i][j][k];
                 cout << transition[i][j][k] << " ";
             }
-            cout << endl;
+            cout << " (";
+            for(int k=0; k<5; k++){
+                cout << fixed << setprecision(1) << 100*(double)transition[i][j][k]/temp << " ";
+            }
+            cout << ") / " << temp << endl;
         }
     }
     cout << "all time = " << (double)mTime << "s" << endl;

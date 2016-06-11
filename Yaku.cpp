@@ -83,7 +83,7 @@ void Yaku::setKaidan(){
     mCardBit |= IS_KAIDAN;
 }
 void Yaku::setJTanki(){
-    mCardBit |= (IS_JUSED & IS_TANKI);
+    mCardBit |= (IS_JUSED | IS_TANKI);
 }
 
 void Yaku::clear(){

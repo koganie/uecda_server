@@ -38,7 +38,8 @@ typedef unsigned long long int int64;
 #define IS_JTANKI   BITull(57)//joker単騎のこと、jokerを使っているかではない
 #define IS_KAKUMEI  BITull(58)
 #define IS_SHIBARI  BITull(59)
-#define IS_8GIRI    BITull(60)
+//#define IS_8GIRI    BITull(60)
+#define IS_8GIRI    CARDBIT(0,6)|CARDBIT(1,6)|CARDBIT(2,6)|CARDBIT(3,6)
 //#define IS_NUM(num) BITull(56+num)//カード枚数は何枚か?1以上が入力
 
 #define DAIFUGO 0

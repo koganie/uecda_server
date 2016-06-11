@@ -70,7 +70,7 @@ public:
     //bool pass();//ƒpƒX‚µ‚ÄŸ‚Ìl‚É‰ñ‚·
     
     void print();
-    
+    int convIDtoSekiNum(int num);
 };
 
 

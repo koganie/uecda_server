@@ -43,6 +43,8 @@ public:
     int mRankL;         //ランク（強さ）
     int mSuits;
     
+    int player_id;//前回の出した人のID
+    int preBafuda[8][15];
     Yaku mBafuda;         //場札
     //Player mPlayer;   //各プレイヤーの情報
     

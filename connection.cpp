@@ -72,12 +72,12 @@ void send815(int card[8][15], int sockfd){
     
 	for(int i=0; i<8; i++){
 		for(int j=0; j<15; j++){
-			tmp[i][j] = htonl((uint32_t)card[i][j]*(card[i][j]>=0));
+		    tmp[i][j] = htonl((uint32_t)card[i][j]*(card[i][j]>=0));
 	        //cout << card[i][j] << " ";
 		}
 	    //cout << endl;
 	}
-    uint32_t i;
+    int i=0;
     write(sockfd, tmp, sizeof(i)*8*15);
 	//write(sockfd, tmp, sizeof(tmp));
 }

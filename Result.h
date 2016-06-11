@@ -32,6 +32,8 @@ public:
     int mTo;//’N‚É
     
     Change( int from, int to, const int cards[8][15] );
+    
+    void print();
 };
 
 class Result{

@@ -79,7 +79,7 @@ void Players::sekigae(){
 
 void Players::reset(){
     //席替えと、ランクのリセット
-    sekigae();
+    //sekigae();//席替えは行われない
     for(int i=0; i<id.size(); i++){
         id[i].mibun = HEIMIN;
     }
@@ -97,12 +97,6 @@ bool Players::isMisalliance(){
     };
 }
 
-/*
-int Players::sockfd(int num){
-    return id[num].sockfd;
-}
-*/
-
 int Players::mibunId(int num){
     for(int i=0; i<id.size(); i++){
         if(id[i].mibun == num){
@@ -116,22 +110,32 @@ int Players::turnId(){
     return sekijun[turn];
 }
 
+int Players::convIDtoSekiNum(int num){
+    for(int i=0; i<id.size(); i++){
+        if(num==sekijun[i]){
+            return i;
+        }
+    }
+    return -1;
+}
+
 
 void Players::nextTurn(){
     int count = 0;
-    turn = (turn + 1) % sekijun.size();
-    while( id[turnId()].passed == true || id[turnId()].cards_num==0 ){
-        turn = (turn + 1) % sekijun.size();
-        count++;
-        if(count > id.size()){//全員に提出権があるか聞いた
-            /*
-            cout << " turn fault" << endl;
-            exit(1);
-            */
-            recover();
-            count = 0;
+    int first = turn;//今のプレイヤー
+    turn = (turn + 1) % sekijun.size();//次に回すプレイヤー
+
+    for(int i=0; i<5; i++){
+        //パスしているかあがっている
+        if( id[turnId()].passed == true || id[turnId()].cards_num==0 ){
+            turn = (turn + 1) % sekijun.size();//さらに次を見る
+        }else{
+            //提出権が回ったら帰る
+            return;
         }
     }
+    //全員に提出権はなかった
+    turn = first;
 }
 
 void Players::recover(){
@@ -144,14 +148,6 @@ void Players::addAgari( int num ){
     agari.push_back( num );
 }
 
-/*
-void Players::update( Result &result ){
-    for(int i=0; i<players.agari.size(); i++){
-        id[i].mibun = result.mAMibun[i];
-    }
-}
-*/
-
 void Players::print(){
     for(int i=0; i<sekijun.size(); i++){
         cout << sekijun[i] << " ";
@@ -162,8 +158,13 @@ void Players::print(){
     }
     cout << endl;
     for(int i=0; i<id.size(); i++){
+        cout << id[i].passed << " ";
+    }
+    cout << endl;
+    for(int i=0; i<id.size(); i++){
         cout << id[i].cards_num << " ";
     }
+    cout << endl;
 }
 
 void Players::setCardsNum(){
