@@ -5,6 +5,7 @@
 //‚Ğ‚½‚·‚ço—Íƒ‚[ƒh
 #define COUT cout
 #define PRINT815(data) print815(data)
+#define DEBUGMODE
 #else
 #define COUT 0 && cout
 #define PRINT815(data) 0

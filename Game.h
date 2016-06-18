@@ -26,6 +26,7 @@ private:
     int whoHave(int suit, int rank);//誰がcard[suit][rank]を持っているか
     
     bool isGameEnd();//ゲームは終わった？（順位は決したか）
+    bool isBaAlive();
     
     void makeTefuda815(int data[5][8][15]);//UECda形式の送信用の配列に加工する
     void makeBafuda815(int data[5][8][15]);//UECda形式の送信用の配列に加工する
