@@ -108,7 +108,39 @@ bool Configure::setRule(){
 		strupr2(dat2);//?
 		dat1=strtok(dat2," \r\t\n");//スペースまでdat1に
 		if(dat1!=NULL){
-			if(strcmp(dat1,"POINT")==0){
+		    if(strcmp(dat1,"KAKUMEI_KAIDAN_NUM")==0){
+				dat1=strtok(NULL," \r\t\n");
+				if(isint(dat1)){
+					KAKUMEI_KAIDAN_NUM=atoi(dat1);	
+				}else{
+					error=1;
+				}
+			}else if(strcmp(dat1,"KAKUMEI_PAIR_NUM")==0){
+				dat1=strtok(NULL," \r\t\n");
+				if(isint(dat1)){
+					KAKUMEI_PAIR_NUM=atoi(dat1);	
+				}else{
+					error=1;
+				}
+			}else if(strcmp(dat1,"RULE_8GIRI")==0){
+				dat1=strtok(NULL," \r\t\n");
+				if(strcmp(dat1,"YES")==0){
+					RULE_8GIRI=1;	
+			    }else if(strcmp(dat1,"NO")==0){
+					RULE_8GIRI=0;
+			    }else{
+			        error=1;
+			    }
+			}else if(strcmp(dat1,"RULE_SPADE3")==0){
+				dat1=strtok(NULL," \r\t\n");
+				if(strcmp(dat1,"YES")==0){
+					RULE_SPADE3=1;	
+			    }else if(strcmp(dat1,"NO")==0){
+					RULE_SPADE3=0;
+			    }else{
+			        error=1;
+			    }
+			}else if(strcmp(dat1,"POINT")==0){
 				dat1=strtok(NULL," \r\t\n");
 				if(isint(dat1)){
 					POINT=atoi(dat1);	
@@ -260,4 +292,13 @@ void Configure::printRules(){
     cout << "PLAYER_NUM " <<  PLAYER_NUM << endl;//プレイヤーの数
     
     cout << endl;
+}
+
+bool Configure::isKakumei( const Yaku &yaku){
+    if(yaku.isPair() && yaku.mNum>KAKUMEI_KAIDAN_NUM){
+        return true;
+    }else if(yaku.isKaidan() && yaku.mNum>KAKUMEI_PAIR_NUM){
+        return true;
+    }
+    return false;
 }

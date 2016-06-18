@@ -54,10 +54,25 @@ bool Yaku::isKakumei() const{
 }
 
 bool Yaku::is8giri() const{
+    /*
     return (mCardBit&(IS_8GIRI))!=0;
+    */
+    if( mRankL <= 6 && 6 <= mRankR && !isJTanki() ){
+        return true;
+    }else{
+        return false;
+    }
 }
 bool Yaku::isSpade3() const{
+    /*
     return (mCardBit&(IS_SPADE3))!=0;
+    */
+    if( mNum==1 && mRankR==1 && mRankL==1 && mSuits==1){
+        return true;
+    }else{
+        return false;
+    }
+    
 }
 bool Yaku::isPass() const{
     return (mNum==0) ? 1 : 0;
@@ -338,7 +353,7 @@ int selectBigCards(Yaku *card, const std::vector<Yaku> &vecCard){
 }
 
 void Yaku::print() const{
-    string suit = "DSCH ";
+    string suit = "SHDC ";
     int cards[8][15] = {{0}};
     //cout << " gg" << endl;
     setBitTo815( cards );

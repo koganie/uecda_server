@@ -23,7 +23,8 @@ bool Table::isPair() const{
     return (baBit&(IS_BA_PAIR))!=0;//ペアか？
 }
 bool Table::isTanki() const{
-    return (baBit&(IS_BA_TANKI))!=0;//単騎か？
+    //return (baBit&(IS_BA_TANKI))!=0;//単騎か？
+    return mBafuda.isTanki();
 }
 bool Table::isKakumei() const{
     return (baBit&(IS_BA_KAKUMEI))!=0;//革命か？

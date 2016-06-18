@@ -80,6 +80,10 @@ void Game::start( Result *result){
         changeCardsUEC( result );//カードの交換
     }
     
+    for(int i=0;i<5;i++){
+        COUT<<i<<endl;
+        PRINT815(players.id[i].cards);
+    }
     players.setCardsNum();
     //最初のプレイヤーIDをturnに保存する
     players.turn = players.convIDtoSekiNum(whoHave(2, 1));//ダイヤの3を持つものが最初のターンである
@@ -92,10 +96,17 @@ void Game::start( Result *result){
             for(int i=0; i<config.PLAYER_NUM; i++){
                 send815( sendTefuda[i], players.id[i].sockfd );
             }
+            COUT<<"send hand"<<endl;
+            PRINT815( sendTefuda[players.turnId()] );
         }
         int data[8][15]={{0}};
         recv815(data, players.id[players.turnId()].sockfd);//現在のターンのプレイヤから提出カードを受け取る
-        
+        /*
+        table.print();
+        players.print();
+        COUT<<"get"<<endl;
+        PRINT815(data);
+        */
         //提出されたデータの解析
         Yaku yaku;//受け取ったデータの変換先
         int num = 0;//返信用番号
@@ -119,18 +130,22 @@ void Game::start( Result *result){
             }
         }else{//役として成り立っていない
             //cout << "unable to convert into Yaku!" << endl;
+            //table.print();
             //print815( data );
             //yaku.printBit();
             yaku.demoPass();
             num = 8;
         }
         
-        //役の保存
-        Table bTable = table;//提出前の盤面
-        vector<int> passArray, numArray;//パスしてるかの配列
-        makePassArray( &passArray );//パスアレイを作る
-        makeNumArray( &numArray );//枚数アレイを作る
-        result->addAct( players.turn, bTable, passArray, numArray, yaku );//提出役の記録
+        {
+            //役の保存
+            Table bTable = table;//提出前の盤面
+            vector<int> passArray, numArray;//パスしてるかの配列
+            makePassArray( &passArray );//パスアレイを作る
+            makeNumArray( &numArray );//枚数アレイを作る
+            result->addAct( players.turn, bTable, passArray, numArray, yaku );//提出役の記録
+            //result->print();
+        }
         
         table.player_id = players.turnId();
         
@@ -139,10 +154,12 @@ void Game::start( Result *result){
         case 7:
             COUT << 7 << endl;
             send1( 7, players.id[players.turnId()].sockfd );//パスとしてパスをした
+            pass();
             break;
         case 8:
             COUT << 8 << endl;
             send1( 8, players.id[players.turnId()].sockfd );//パスしたとみなした
+            pass();
             break;
         case 9:
             COUT << 9 << endl;
@@ -158,24 +175,43 @@ void Game::start( Result *result){
             for(int i=0; i<5; i++){
                 send815( sendBafuda[i], players.id[i].sockfd );
             }
+            COUT<<"send bafuda"<<endl;
+            PRINT815( sendBafuda[players.turnId()] );
         }
             
         //場札を通知したら、次のプレイヤーに移るが、場が流れることもある
+        bool pf  = true;
         switch(num){
         case 7:
         case 8:
-            pass();
+            //pass();
+            pf = true;
+            for(int i=0;i<config.PLAYER_NUM;i++){
+                if(players.id[i].passed == false && players.id[i].cards_num!=0 ){//あがってなくてかつパスしていない人がいるなら
+                    players.nextTurn();//次の人
+                    pf =false;
+                    break;
+                }
+            }
+            //全員パスしている
+            if(pf){
+                purge();
+            }
             break;
         case 9:
             //何かが通知されれば次のプレイヤーに移るが、場が流れることもある
-            if(yaku.is8giri() || (table.isJTanki() && yaku.isSpade3())){
+            //if( (config.RULE_8GIRI && yaku.is8giri()) || (config.RULE_SPADE3 && table.isJTanki() && yaku.isSpade3()) ){
+            if( table.isOnset() ){
                 purge();
                 break;
             }
             players.nextTurn();
             break;
         }
-        
+        /*
+        table.print();
+        players.print();
+        */
         {
             //試合終了の判定
             if(isGameEnd()){
@@ -204,6 +240,14 @@ void Game::changeCardsUEC( Result *result ){
     COUT<<"change"<<endl;
     
     //Gameコンストラクタですでに搾取されている
+    //コンストラクタ時点で足されていたものを修復する
+    for(int i=0; i<result->mChange.size(); i++){
+        if(result->mChange[i].mFrom == players.mibunId(HINMIN)){
+            deleteCard(players.id[players.mibunId(HINMIN)].cards, result->mChange[i].mCards);
+        }else if(result->mChange[i].mFrom == players.mibunId(DAIHINMIN)){
+            deleteCard(players.id[players.mibunId(DAIHINMIN)].cards, result->mChange[i].mCards);
+        }
+    }
     
     //交換するカードを受け取り、確認を行う（通信）
     //大富豪から大貧民へ
@@ -234,17 +278,15 @@ void Game::changeCardsUEC( Result *result ){
     deleteCard(players.id[players.mibunId(FUGO)].cards, data);//交換できるなら削除して
     addCard(players.id[players.mibunId(HINMIN)].cards, data);//押し付ける
     
-    //コンストラクタ時点で足されていたものを修復する
-    for(int i=0; i<result->mChange.size(); i++){
-        if(result->mChange[i].mFrom == players.mibunId(HINMIN)){
-            deleteCard(players.id[players.mibunId(HINMIN)].cards, result->mChange[i].mCards);
-        }else if(result->mChange[i].mFrom == players.mibunId(DAIHINMIN)){
-            deleteCard(players.id[players.mibunId(DAIHINMIN)].cards, result->mChange[i].mCards);
+    if(0){
+        COUT<<"CHANGE"<<endl;
+        for(int i=0; i<result->mChange.size(); i++){
+            result->mChange[i].print();
         }
     }
-    
 }
 
+/*
 void Game::make815Table(int card[8][15]){
     COUT<<"m8t"<<endl;
     //card[5][0]=;//カード交換中である
@@ -273,6 +315,7 @@ void Game::make815Player(int card[8][15]){
         card[6][10+i] = players.sekijun[i];
     }
 }
+*/
 
 int Game::whoHave(int suit, int rank){
     COUT<<"wh"<<endl;
@@ -349,7 +392,9 @@ bool Game::isSubmittableYaku(const Yaku &yaku){
     }else if(table.isTanki()){
         COUT << "tnk" << endl;
         if(yaku.isTanki()){
-            if(table.mBafuda.isJTanki() && yaku.isSpade3()){
+            //cout << config.RULE_SPADE3 <<" " << table.mBafuda.isJTanki() <<" " << yaku.isSpade3() << endl;
+            if( config.RULE_SPADE3 && table.mBafuda.isJTanki() && yaku.isSpade3()){
+                //cout<<"nemutai nemutai nemutai"<<endl;
                 return true;
             }else if(yaku.isJTanki()){
                 return true;
@@ -365,6 +410,7 @@ bool Game::isSubmittableYaku(const Yaku &yaku){
         }
     }else if(table.isOnset()){
         COUT << "ons" << endl;
+        //場が空なら何を出してもいい
         return true;
     }
     return false;
@@ -384,22 +430,43 @@ void Game::update(const Yaku &yaku){//役での更新
     if(players.id[players.turnId()].cards_num<0){
         yaku.print();
         exit(1);
-    
     }
+    
     if( players.id[players.turnId()].cards_num == 0 ){//あがった
         players.addAgari( players.turnId() );
     }
     
+    if( (config.RULE_8GIRI && yaku.is8giri()) || (config.RULE_SPADE3 && table.mBafuda.isJTanki() && yaku.isSpade3()) ){
+        //cout<<"gomi | | | | | | | | | || | | | | | || | | | | || | | "<<endl;
+        //yaku.print();
+        table.setOnset(true);
+    }else{
+        int pn = 0;
+        for(int i=0;i<config.PLAYER_NUM;i++){
+            if( players.id[i].cards_num==0 || players.id[i].passed ){
+                pn++;
+            }
+        }
+        if(pn==config.PLAYER_NUM){
+            //全員あがっているかパスしていれば場が流れる
+            table.setOnset(true);
+        }else{
+            table.setOnset(false);
+        }
+    }
+    
     table.mBafuda = yaku;
-    table.setOnset(false);
+    
     table.mRankL = yaku.mRankL;
     table.mRankR = yaku.mRankR;
     table.mNum = yaku.mNum;
-    if(table.mSuits == yaku.mSuits){
+    //縛りの発生可否
+    if( config.RULE_SHIBARI && table.mSuits == yaku.mSuits){
         table.setShibari(1);
     }else{
         table.mSuits = yaku.mSuits;
     }
+    //役の種類
     if(yaku.isKaidan()){
         table.setKaidan(true);
     }else if(yaku.isPair()){
@@ -407,7 +474,13 @@ void Game::update(const Yaku &yaku){//役での更新
     }else if(yaku.isTanki()){
         table.setTanki(true);
     }
+    /*
     if(yaku.isKakumei()){
+        table.revKakumei();
+    }
+    */
+    //革命発生可否
+    if( config.isKakumei( yaku ) ){
         table.revKakumei();
     }
     
@@ -589,6 +662,15 @@ void Game::dealCards(){
         //次の人
         target = ( target + 1 ) % ( players.size() );
     }
+    
+    int cnum=0;
+    for(int i=0;i<5;i++){
+        cnum+=players.id[i].cards_num;
+    }
+    if(cnum!=53){
+        cout<<"card distribution faled"<<endl;
+        exit(1);
+    }
 }
 
 bool checkChangeCardUEC(int data[8][15], Player &player){
@@ -745,6 +827,16 @@ void Game::makeBafuda815(int data[5][8][15]){
     //場が流れたか
     if(table.isOnset()){
         temp[5][4] = 1;
+    }else{
+        int pn = 0;
+        for(int i=0;i<config.PLAYER_NUM;i++){
+            if(players.id[i].passed || players.id[i].cards_num==0 ){//あがってなくてかつパスしていない人がいるなら
+                pn++;
+            }
+        }
+        if(pn==config.PLAYER_NUM){
+            temp[5][4]=1;
+        }
     }
     //cout<<3<<endl;
     //イレブンバック
@@ -817,6 +909,7 @@ bool Game::isGameEnd(){
 void Game::pass(){
     COUT<<"pass"<<endl;
     players.id[players.turnId()].passed = true;
+    /*
     for(int i=0;i<config.PLAYER_NUM;i++){
         if(players.id[i].passed == false && players.id[i].cards_num!=0 ){//あがってなくてかつパスしていない人がいるなら
             players.nextTurn();//次の人
@@ -825,6 +918,7 @@ void Game::pass(){
     }
     //全員パスしている
     purge();
+    */
 }
 
 void Game::recover(){

@@ -2,6 +2,7 @@
 #define DEFINE_CONFIGURE
 
 #include<string>
+#include"Yaku.h"
 
 using namespace std;
 
@@ -11,9 +12,12 @@ public:
     
     //ゲームに関する設定
     bool RULE_KAKUMEI;//「革命」を使うか
+    int KAKUMEI_KAIDAN_NUM;//階段の場合の革命が起きる枚数
+    int KAKUMEI_PAIR_NUM;//ペアの場合の革命が起きる枚数
     bool RULE_SHIBARI;//「縛り」を使うか
     bool RULE_KAIDAN;//「階段」を使うか
     bool RULE_8GIRI;//「8切り」を使うか
+    bool RULE_SPADE3;//「スペ３」を使うか
     bool RULE_11BACK;//「11バック」を使うか TODO
     bool RULE_MIYAKOOCHI;//「都落ち」を使うか TODO
     
@@ -41,6 +45,9 @@ public:
     bool isReset(int game_count);//リセットが発生するか
     
     void printRules();
+    
+    //table更新時に利用
+    bool isKakumei( const Yaku &yaku );
 };
 
 #endif
