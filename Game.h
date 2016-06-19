@@ -40,7 +40,7 @@ private:
     //bool checkValidCardUEC(Yaku yaku);//提出役が提出可能かどうか確認を行う
     bool conv815toYaku(Yaku *yaku, int card[8][15]);
     bool isSubmittableYaku(const Yaku &yaku);
-    bool isCardChangePhase();
+    //bool isCardChangePhase();
     
     //
     void purge();

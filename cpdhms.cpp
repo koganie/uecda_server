@@ -32,10 +32,10 @@ int main(int argc, char *argv[]){
         
         Result result;//結果を保存する
         
-        if(config.isReset(game_count)){//身分と席順のリセット
+        if(config.isReset(game_count)){//身分のリセット
             players.reset();
             result.reset = true;
-            result.sekigae = true;
+            result.sekigae = false;
         }else if(config.isSekigae(game_count)){//席替え（提出の順番）が行われるなれば
             players.sekigae();
             result.reset = false;

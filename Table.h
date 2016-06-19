@@ -38,10 +38,13 @@ public:
     void setJTanki(bool flag);//ジョーカー単騎フラグをセットする
 	int whoseTurn() const;//現在のターンの人のプレイヤー番号を返す
     
+    /*
+    //ここらへんはmBafudaを参照するのでいらない
     int mNum;
     int mRankR;         //ランク（強さ）
     int mRankL;         //ランク（強さ）
     int mSuits;
+    */
     
     int player_id;//前回の出した人のID
     int preBafuda[8][15];
@@ -52,8 +55,8 @@ public:
     
     void firstGame(int cards[8][15]);
     void purge();
-    void setBafuda(int cards[8][15]);
-    void setBaInfo(int cards[8][15]);
+    //void setBafuda(int cards[8][15]);
+    //void setBaInfo(int cards[8][15]);
 
     void print() const;
     

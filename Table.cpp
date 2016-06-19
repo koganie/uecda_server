@@ -5,10 +5,12 @@ using namespace std;
 
 Table::Table(){
     baBit = 0ull;
+    /*
     mNum = 0;
     mRankR = 0;
     mRankL = 0;
     mSuits = 0;
+    */
     setOnset(1);//‹óê‚ÉƒZƒbƒg
     mBafuda.init();//ƒJ[ƒh‚Ííœ
 }
@@ -82,10 +84,12 @@ int Table::whoseTurn() const{//Œ»İ‚Ìƒ^[ƒ“‚Ìl‚ÌƒvƒŒƒCƒ„[”Ô†‚ğ•Ô‚·
 
 void Table::firstGame(int cards[8][15]){//ƒQ[ƒ€‚Ì‰Šú‰»
     baBit = 0;
+    /*
     mNum = 0;
     mRankR = 0;
     mRankL = 0;
     mSuits = 0;
+    */
     setOnset(1);//‹óê‚ÉƒZƒbƒg
     mBafuda.init();//ƒJ[ƒh‚Ííœ
     //mPlayers.set(cards);//ƒJ[ƒh‚Ì5s–ÚˆÈ~‚Ìî•ñ‚ÅƒZƒbƒg
@@ -94,14 +98,17 @@ void Table::firstGame(int cards[8][15]){//ƒQ[ƒ€‚Ì‰Šú‰»
 void Table::purge(){//ê‚ğ—¬‚·i‰pŒê•\Œ»‚ª‚í‚©‚ç‚È‚©‚Á‚½j
     baBit &= (IS_BA_KAKUMEI);   //Šv–½ó‘Ô‚ÍÁ‚¦‚é‚±‚Æ‚Í‚È‚¢
     baBit |= (IS_BA_ONSET);     //‹óê‚É‚·‚é
+    /*
     mNum = 0;
     mRankR = 0;
     mRankL = 0;
     mSuits = 0;
+    */
     mBafuda.clear();      //ƒJ[ƒh‚ğÁ‚·
     //mPlayers.recover(); //ƒvƒŒƒCƒ„[‚ÌƒpƒXó‘Ô‚ğ‰ğœ‚·‚é
 }
-    
+
+/*
 void Table::setBafuda(int cards[8][15]){//êD‚ğ•Û‘¶iêD‚©‚ç“Ç‚İæ‚ê‚é‚à‚Ì‚¾‚¯XV‚·‚éj
     mBafuda.clear();
     mBafuda.setBit(cards);
@@ -124,13 +131,15 @@ void Table::setBafuda(int cards[8][15]){//êD‚ğ•Û‘¶iêD‚©‚ç“Ç‚İæ‚ê‚é‚à‚Ì‚¾‚¯
     }else{
         mRank = mBafuda.mRankR;//‰E’[
     }
-    */
+    
     mRankL = mBafuda.mRankL;//¶’[
     mRankR = mBafuda.mRankR;//‰E’[
     
     mSuits = mBafuda.mSuits;//ƒX[ƒc
 }
+*/
     
+/*
 void Table::setBaInfo(int cards[8][15]){//•’Êó‚¯æ‚é‚Ì‚ÍèD‚Å‚ ‚èA5s–ÚˆÈ‰º‚Ìê‚Ìî•ñ‚ğXV‚·‚é
     if(cards[5][4]>0)   baBit |=  IS_BA_ONSET;  //‹óê
     else                baBit &= ~IS_BA_ONSET;
@@ -144,6 +153,7 @@ void Table::setBaInfo(int cards[8][15]){//•’Êó‚¯æ‚é‚Ì‚ÍèD‚Å‚ ‚èA5s–ÚˆÈ‰º‚
     }
 	//mPlayers.update(cards);
 }
+*/
 
 void Table::print() const{
     
@@ -151,10 +161,10 @@ void Table::print() const{
      <<", KA" << isKaidan()
      <<", PA" << isPair()
      << ", TN" << isTanki() 
-     << ", NU" << mNum << ", RNL" << mRankL<< ", RNR" << mRankR << endl;
+     << ", NU" << mBafuda.mNum << ", RNL" << mBafuda.mRankL<< ", RNR" << mBafuda.mRankR << endl;
     cout << "KK" << isKakumei() 
     << ", SH"<< isShibari() 
-    << ", SS " << mSuits << endl;
+    << ", SS " << mBafuda.mSuits << endl;
     //cout << "bafuda" << endl;
     //int temp[8][15]={{0}};
     //mCard.printBit2();
