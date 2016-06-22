@@ -1,6 +1,7 @@
 #ifndef DEFINE_YAKU
 #define DEFINE_YAKU
 
+#include <string>
 #include "bit.h"
 
 using namespace std;
@@ -60,6 +61,8 @@ public:
     void setBit(int src[8][15]);//[8][15]配列から情報を格納する //場札の解析用である
     void set815ToBit(int src[8][15]);//815配列をbitに変換する
     void setBitTo815(int dest[8][15]) const;//bitを815配列に変換する
+    
+    string getStr();
 };
 
 #endif

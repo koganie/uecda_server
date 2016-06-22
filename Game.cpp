@@ -21,7 +21,7 @@ Game::Game(const Configure &c, const Players &p, Result *result){
         players.id[i].cards_num = 0;
     }
     
-    result->setup( &players );//プレイヤー情報で更新する
+    result->setup( &players, config );//プレイヤー情報で更新する
     
     //最初の手札の決定
     dealCards();//プレイヤたちにカードを分配する
@@ -70,6 +70,7 @@ Game::Game(const Configure &c, const Players &p, Result *result){
         send815(tefuda[i], players.id[i].sockfd );//それぞれに通知
     }
     
+    result->setFirstCards( tefuda );
 }
 
 void Game::start( Result *result){

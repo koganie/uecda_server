@@ -2,6 +2,8 @@
 #include<string.h>
 #include<vector>
 #include<cstdlib>
+#include <sstream>
+
 #include "Yaku.h"
 #include "bit.h"
 
@@ -358,6 +360,7 @@ void Yaku::print() const{
     //cout << " gg" << endl;
     setBitTo815( cards );
     //cout << " bb " << endl;
+    
     for(int j=0; j<=5; j++){
         for(int k=0; k<=14; k++){
             if(cards[j][k]==1){
@@ -371,3 +374,38 @@ void Yaku::print() const{
     //cout << mNum << " " << mRankL << " " << mRankR << " " << mSuits << endl;
 }
 
+string Yaku::getStr(){
+    
+    string suit = "SHDCshdc ";
+    string rank = "B3456789XJQKRA2U";
+    
+    int cards[8][15] = {{0}};
+    //cout << " gg" << endl;
+    setBitTo815( cards );
+    //cout << " bb " << endl;
+    string str="";
+    
+    if( isJTanki() ){
+        str+="JR";
+    }else{
+        for(int j=0; j<=5; j++){
+            for(int k=0; k<=14; k++){
+                ostringstream stream;
+                stream << k;
+                if(cards[j][k]==1){
+                    str += suit[j];
+                    str += rank[k];
+                    //str += stream.str();
+                }else if(cards[j][k]==2){
+                    str += suit[j+4];
+                    str += rank[k];
+                    //str += stream.str();
+                }
+            }
+        }
+    }
+    
+    return str;
+    //cout<<endl;
+    //cout << mNum << " " << mRankL << " " << mRankR << " " << mSuits << endl;
+}

@@ -6,9 +6,11 @@
 #include "Yaku.h"
 #include "Table.h"
 #include "Player.h"
+#include "Configure.h"
 #include <ctime>
 #include <cstring>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -34,17 +36,20 @@ public:
     Change( int from, int to, const int cards[8][15] );
     
     void print();
+    string getStr();
 };
 
 class Result{
 private:
-    vector< Action > mHistory;//プレイヤーたちの行動の履歴
     
-    vector< vector< vector< int > > > mHands;//プレイヤーたちの最初の手札
+    
     
 public:
+    vector< vector< vector< int > > > mHands;//プレイヤーたちの最初の手札
+    vector< Action > mHistory;//プレイヤーたちの行動の履歴
     vector< int > mMibun;//
     vector< int > mAMibun;//
+    vector< int > mSekijun;
     vector< int > mAgari;//上がった順にプレイヤーIDを入れていく
     vector< Change > mChange;//プレイヤーたちの交換したカード
     
@@ -54,14 +59,16 @@ public:
     void addAgari( int id );
     void addHands( const int cards[8][15]);
     void setMibun( vector<Player> *players );
-    void setup( vector<Player> *players);
-    void setup( Players *players);
+    //void setup( vector<Player> *players);
+    void setup( Players *players, Configure &config);
     void finish(Players &players);
     void update( Players *players );
     
+    void setFirstCards( int cards[5][8][15] );
+    
     bool sekigae;
     bool reset;
-    
+    Configure mConfig;
     
     void print();
 };
@@ -69,7 +76,6 @@ public:
 class Results{
 private:
     vector<Result> results;
-    
     
 public:
     Results( Players &players );
@@ -96,6 +102,7 @@ public:
     //結果ファイル出力用
     void writeScore();
     void writeTransition();
+    void writeHistory1();//暫定（適当）棋譜出力
 };
 #endif
 

@@ -46,6 +46,8 @@ public:
     
     void printRules();
     
+    string getStr();//ルールのstring形式を返す
+    
     //table更新時に利用
     bool isKakumei( const Yaku &yaku );
 };

@@ -3,6 +3,7 @@
 #include<iostream>
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
 #include <ctype.h>
 
 using namespace std;
@@ -292,6 +293,36 @@ void Configure::printRules(){
     cout << "PLAYER_NUM " <<  PLAYER_NUM << endl;//ƒvƒŒƒCƒ„[‚Ì”
     
     cout << endl;
+}
+
+string Configure::getStr(){
+    stringstream str;
+    /*
+    str += "KAKUMEI";
+    str += (RULE_KAKUMEI ? "1\n" : "0\n");
+    str += "SHIBARI";
+    str += (RULE_SHIBARI ? "1\n" : "0\n");
+    str += "KAIDAN";
+    str += (RULE_KAIDAN ? "1\n" : "0\n");
+    str += "8GIRI";
+    str += (RULE_8GIRI ? "1\n" : "0\n");
+    str += "11BACK";
+    str += (RULE_11BACK ? "1\n" : "0\n");
+    str += "SEKIGAE_NUM " << RULE_SEKIGAE_NUM;
+    */
+    str << "KAKUMEI";
+    str << (RULE_KAKUMEI ? "1\n" : "0\n");
+    str << "SHIBARI";
+    str << (RULE_SHIBARI ? "1\n" : "0\n");
+    str << "KAIDAN";
+    str << (RULE_KAIDAN ? "1\n" : "0\n");
+    str << "8GIRI";
+    str << (RULE_8GIRI ? "1\n" : "0\n");
+    str << "11BACK";
+    str << (RULE_11BACK ? "1\n" : "0\n");
+    str << "SEKIGAE_NUM " << RULE_SEKIGAE_NUM;
+    
+    return str.str();
 }
 
 bool Configure::isKakumei( const Yaku &yaku){

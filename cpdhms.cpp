@@ -79,6 +79,7 @@ int main(int argc, char *argv[]){
     cout << " file output start" << endl;
     results.writeScore();
     results.writeTransition();
+    results.writeHistory1();
     cout << " file output done" << endl;
     #endif
 }
