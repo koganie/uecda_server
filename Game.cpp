@@ -218,9 +218,11 @@ void Game::start( Result *result){
             //解釈可能ならばyaku形式に変換されている
             if(isSubmittableYaku(yaku)){//提出可能な手か？
                 if(yaku.isPass()){//パスと明示している（UEC標準ルールには存在しない）
-                    if( config.PROTOCOL!=20070 ){//
+                    if( config.PROTOCOL!=20070 ){
+                        //20070以上のプロトコルならパス明示の返答をする。
                         num = 7;
                     }else{
+                        //でなければ普通にパスである。
                         num = 8;
                     }
                 }else{//提出可能な役
@@ -426,7 +428,7 @@ bool Game::isSubmittableYaku(const Yaku &yaku){
     
     if(yaku.isPass()){//そもそもパスする気でいる
         COUT << "pas" << endl;
-        return false;
+        return true;
     }else if(table.isKaidan()){
         COUT << "kdn" << endl;
         if(yaku.isKaidan() && yaku.mNum==table.mBafuda.mNum){
@@ -552,6 +554,11 @@ void Game::purge(){//場を流す
 bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
     COUT<<"c8ty"<<endl;
     //提出役が本当に提出可能かどうかを確認し、yakuに変換する
+    if(countCard(data)==0){
+        //パスが明示されている
+        yaku->demoPass();
+        return true;
+    }
     int cards_num = 0, joker_num = 0;
     vector<int> suit, rank, fake;//発見されたカードをいれていく
     for(int i=0; i<8; i++){
