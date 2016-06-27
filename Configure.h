@@ -1,7 +1,8 @@
 #ifndef DEFINE_CONFIGURE
 #define DEFINE_CONFIGURE
 
-#include<string>
+#include <vector>
+#include <cstring>
 #include"Yaku.h"
 
 using namespace std;
@@ -20,6 +21,7 @@ public:
     bool RULE_SPADE3;//「スペ３」を使うか
     bool RULE_11BACK;//「11バック」を使うか TODO
     bool RULE_MIYAKOOCHI;//「都落ち」を使うか TODO
+    bool USE_TEFUDA_SET;
     
     int RULE_SEKIGAE_NUM;//何試合行うと席順をリセットするか
     int RULE_RESET_NUM;//何試合行うと身分等のリセットを行うか
@@ -51,6 +53,8 @@ public:
     //table更新時に利用
     bool isKakumei( const Yaku &yaku );
 };
+
+void readTefudaSet( vector< vector<string> > *tefudaSet);
 
 #endif
 

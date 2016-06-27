@@ -103,6 +103,7 @@ public:
     void writeScore();
     void writeTransition();
     void writeHistory1();//暫定（適当）棋譜出力
+    void writeHistory2();//暫定（適当）棋譜出力
 };
 #endif
 

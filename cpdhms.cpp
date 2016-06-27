@@ -27,6 +27,11 @@ int main(int argc, char *argv[]){
     Results results( players );//試合の記録用クラス
     results.clockStart();//全試合の開始時間をメモる
     
+    //指定手札セットがあるなら読み込む
+    vector< vector<string> > tefudaSet;
+    if( config.USE_TEFUDA_SET ){
+        readTefudaSet( &tefudaSet );
+    }
     //全ゲーム
     for(int game_count=1; game_count<=config.GAME_NUM; game_count++){
         
@@ -46,7 +51,16 @@ int main(int argc, char *argv[]){
         }
         
         //サブゲームを定義する
+        //Game game(config, players, &result, tefudaSet);
         Game game(config, players, &result);
+        if( tefudaSet.size() >= game_count){
+            //割り当てられた手札セットがあるならそれで試合を行う
+            game.dealCards( &result, tefudaSet[game_count-1] );
+        }else{
+            //指定の手札セットがないのなら適当に分配する
+            game.dealCards( &result );
+        }    
+        game.sendFirstCards( &result );
         
         //試合を行う
         game.start( &result );//ゲームを開始して結果をresultに収める
@@ -79,7 +93,7 @@ int main(int argc, char *argv[]){
     cout << " file output start" << endl;
     results.writeScore();
     results.writeTransition();
-    results.writeHistory1();
+    results.writeHistory2();
     cout << " file output done" << endl;
     #endif
 }

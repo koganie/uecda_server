@@ -380,13 +380,13 @@ string Yaku::getStr(){
     string rank = "B3456789XJQKRA2U";
     
     int cards[8][15] = {{0}};
-    //cout << " gg" << endl;
     setBitTo815( cards );
-    //cout << " bb " << endl;
     string str="";
     
     if( isJTanki() ){
         str+="JR";
+    }else if( isPass() ){
+        str+="PS";
     }else{
         for(int j=0; j<=5; j++){
             for(int k=0; k<=14; k++){

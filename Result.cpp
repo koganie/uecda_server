@@ -345,16 +345,7 @@ void Results::calcTransition(){
 }
 
 void Results::print(){
-    /*
-    vector<int> finscore;
-    for(int i=0; i<5; i++){
-        int temp = 0;
-        for(int j=0; j<score[i].size(); j++){
-            temp+=score[i][j];
-        }
-        finscore.push_back( temp );
-    }
-    */
+    
     for(int i=0; i<5; i++){
         //cout << "Player " << i << " : " << score[i] << endl;
         int temp = 0;
@@ -471,9 +462,7 @@ void Results::writeHistory1(){
         ofs << "TEFUDA" << endl;
         
         for(int j=0; j<results[i].mHands.size(); j++){
-            //ofs << j << " ";
             ofs << j << " " << results[i].mMibun[j] << " " << results[i].mSekijun[j] << " ";//プレイヤー番号と身分と席順
-            //cout << j << endl;
             for(int k=0; k<5; k++){
                 for(int l=0; l<15; l++){
                     if(results[i].mHands[j][k][l]==1){
@@ -481,11 +470,7 @@ void Results::writeHistory1(){
                     }else if(results[i].mHands[j][k][l]==2){
                         ofs << "JR ";
                     }
-                    //ofs << results[i].mHands[j][k][l] << " ";
-                    //cout << results[i].mHands[j][k][l] << " ";
                 }
-                //ofs << endl;
-                //cout << endl;
             }
             ofs << endl;
         }
@@ -494,9 +479,7 @@ void Results::writeHistory1(){
             ofs << "CHANGE" << endl;
             for(int j=0; j<results[i].mChange.size(); j++){
                 //前後で盤面の出力をさせてもよい
-                
                 ofs << results[i].mChange[j].getStr() << endl;
-                //
             }
             ofs << endl;
             /*
@@ -519,4 +502,68 @@ void Results::writeHistory1(){
         ofs << endl;
     }
 }
+
+void Results::writeHistory2(){
+    //棋譜をファイル出力する
+    //形式はとりあえず適当に書いておく
+    
+    ofstream ofs("history.txt");
+    string suit = "SHDCJ";
+    string rank = "3456789XJQKA2R";
+    
+    //ofs << mConfig.getStr() << endl;//その試合のルールの出力
+    
+    //プレイヤーの名前
+    for(int i=0; i<name.size(); i++){
+        ofs << i << " " << name[i] << endl;
+    }
+    ofs << endl;
+    for(int i=0; i<results.size(); i++){
+        //試合ごとresults[i]を見ていく
+        //最初の手札の出力
+        ofs << "TEFUDA" << endl;
+        
+        for(int j=0; j<results[i].mHands.size(); j++){
+            ofs << j << " " << results[i].mMibun[j] << " " << results[i].mSekijun[j] << " ";//プレイヤー番号と身分と席順
+            for(int k=0; k<5; k++){
+                for(int l=0; l<15; l++){
+                    if(results[i].mHands[j][k][l]==1){
+                        ofs << suit[k] << rank[l-1] << " ";
+                    }else if(results[i].mHands[j][k][l]==2){
+                        ofs << "JR ";
+                    }
+                }
+            }
+            ofs << endl;
+        }
+        ofs << endl;
+        if( results[i].mChange.size() > 0 ){//交換が行われている
+            ofs << "CHANGE" << endl;
+            for(int j=0; j<results[i].mChange.size(); j++){
+                //前後で盤面の出力をさせてもよい
+                ofs << results[i].mChange[j].getStr() << endl;
+            }
+            ofs << endl;
+            /*
+            ここで最終的な手札を出力させてもよい
+            */
+        }
+        
+        ofs << "HISTORY" << endl;
+        //一試合を一行で書き連ねる
+        for(int j=0; j<results[i].mHistory.size(); j++){
+            //各手各手を出力させていく
+            ofs << results[i].mHistory[j].mId;
+            ofs << results[i].mHistory[j].mYaku.getStr() << " ";
+        }
+        
+        ofs << endl;
+        ofs << "MIBUN" << endl;//新しい身分（ゲームの結果）
+        for(int j=0; j<results[i].mHands.size(); j++){
+            ofs << j << " " << results[i].mAMibun[j] << endl;
+        }
+        ofs << endl;
+    }
+}
+
 

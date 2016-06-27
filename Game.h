@@ -36,7 +36,8 @@ private:
     
     void update(const Yaku &yaku);//盤面更新
     void changeCardsUEC( Result *result );
-    void dealCards();
+    void exploit( Result *result );
+    //void dealCards();
     //bool checkValidCardUEC(Yaku yaku);//提出役が提出可能かどうか確認を行う
     bool conv815toYaku(Yaku *yaku, int card[8][15]);
     bool isSubmittableYaku(const Yaku &yaku);
@@ -57,6 +58,10 @@ private:
 public:
     //Game(const Configure &config, const vector<Player> &p, Result *result);
     Game(const Configure &config, const Players &p, Result *result);
+    
+    void dealCards( Result *result );
+    void dealCards( Result *result , vector<string> &tefudaSet);
+    void sendFirstCards( Result *result );
     
     void start( Result *result );
     //void sekigae();

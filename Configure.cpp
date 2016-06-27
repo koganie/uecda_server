@@ -1,6 +1,7 @@
 #include"Configure.h"
 #include <string.h>
-#include<iostream>
+#include <fstream>
+#include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
@@ -109,7 +110,16 @@ bool Configure::setRule(){
 		strupr2(dat2);//?
 		dat1=strtok(dat2," \r\t\n");//スペースまでdat1に
 		if(dat1!=NULL){
-		    if(strcmp(dat1,"KAKUMEI_KAIDAN_NUM")==0){
+		    if(strcmp(dat1,"USE_TEFUDA_SET")==0){
+				dat1=strtok(NULL," \r\t\n");
+				if(strcmp(dat1,"YES")==0){
+					USE_TEFUDA_SET=1;	
+			    }else if(strcmp(dat1,"NO")==0){
+					USE_TEFUDA_SET=0;
+			    }else{
+			        error=1;
+			    }
+			}else if(strcmp(dat1,"KAKUMEI_KAIDAN_NUM")==0){
 				dat1=strtok(NULL," \r\t\n");
 				if(isint(dat1)){
 					KAKUMEI_KAIDAN_NUM=atoi(dat1);	
@@ -332,4 +342,26 @@ bool Configure::isKakumei( const Yaku &yaku){
         return true;
     }
     return false;
+}
+
+void readTefudaSet( vector< vector<string> > *tefudaSet){
+    ifstream ifs("tefudaSet.txt");
+    string str;
+    if (ifs.fail()){
+        cout << "失敗" << std::endl;
+    }
+    while (getline(ifs, str)){
+        vector<string> temp;
+        temp.push_back(str);
+        for(int i=0; i<4; i++){
+            if( getline(ifs, str) ){
+                temp.push_back(str);
+            }else{
+                //5個に足りなかったらその時点で終了
+                return;
+            }
+        }
+        //5個揃ったらセットに加えることができる
+        tefudaSet->push_back( temp );
+    }
 }

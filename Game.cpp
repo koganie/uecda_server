@@ -9,6 +9,7 @@
 
 #include "debug.h"
 
+/*
 Game::Game(const Configure &c, const Players &p, Result *result){
     //GAMEコンストラクタ
     //最初の手札を配分して、通知までする
@@ -42,6 +43,108 @@ Game::Game(const Configure &c, const Players &p, Result *result){
         
     }
     
+    players.turn = -1;//交換時にはターンの人が変わる可能性があるのでここでは入れない
+    
+    //最初の手札を送付する
+    int tefuda[5][8][15]={{0}};
+    makeTefuda815(tefuda);
+    for(int i=0;i<config.PLAYER_NUM;i++){
+        tefuda[i][5][0] = 1;//最初なのでカード交換
+        switch(players.id[i].mibun){//身分ごとに交換カード枚数を格納する
+        case DAIFUGO:
+            tefuda[i][5][1] = 2;
+            break;
+        case FUGO:
+            tefuda[i][5][1] = 1;
+            break;
+        case HEIMIN:
+            tefuda[i][5][1] = 0;
+            break;
+        case HINMIN:
+            tefuda[i][5][1] = -1;
+            break;
+        case DAIHINMIN:
+            tefuda[i][5][1] = -2;
+            break;
+        }
+        
+        send815(tefuda[i], players.id[i].sockfd );//それぞれに通知
+    }
+    
+    result->setFirstCards( tefuda );
+}
+*/
+
+Game::Game(const Configure &c, const Players &p, Result *result){
+    //GAMEコンストラクタ
+    //最初の手札を配分して、通知までする
+    COUT<<"GAME"<<endl;
+    
+    config = c;//ゲームのルールを格納する
+    players = p;//プレイヤーをコピーする
+    
+    for( int i=0; i<5; i++){
+        players.id[i].cards_num = 0;
+    }
+    
+    result->setup( &players, config );//プレイヤー情報で更新する
+    
+    /*
+    //最初の手札の決定
+    dealCards();//プレイヤたちにカードを分配する
+    
+    if( players.isMisalliance() ){//カード交換（搾取）
+        //最初の手札通知では、大富豪・富豪には"搾取後"の手札が通知される。
+        //一方で大貧民・貧民には"搾取前"の手札が通知される。
+        int data[8][15] = {{0}};
+        //大貧民から大富豪に
+        selectHighCard(data, players.id[players.mibunId(DAIHINMIN)].cards, 2);//2枚選び
+        result->addChange(players.mibunId(DAIHINMIN), players.mibunId(DAIFUGO), data);//大貧民の交換カードを保存
+        addCard(players.id[players.mibunId(DAIFUGO)].cards, data);//足す
+        memset(data, 0, sizeof(data));
+        //貧民から富豪に
+        selectHighCard(data, players.id[players.mibunId(HINMIN)].cards, 1);//1枚選び
+        result->addChange(players.mibunId(HINMIN), players.mibunId(FUGO), data);//貧民の交換カードを保存
+        addCard(players.id[players.mibunId(FUGO)].cards, data);//足す
+        
+    }
+    */
+    
+    //dealCards( result );
+    /*
+    players.turn = -1;//交換時にはターンの人が変わる可能性があるのでここでは入れない
+    
+    //最初の手札を送付する
+    int tefuda[5][8][15]={{0}};
+    makeTefuda815(tefuda);
+    for(int i=0;i<config.PLAYER_NUM;i++){
+        tefuda[i][5][0] = 1;//最初なのでカード交換
+        switch(players.id[i].mibun){//身分ごとに交換カード枚数を格納する
+        case DAIFUGO:
+            tefuda[i][5][1] = 2;
+            break;
+        case FUGO:
+            tefuda[i][5][1] = 1;
+            break;
+        case HEIMIN:
+            tefuda[i][5][1] = 0;
+            break;
+        case HINMIN:
+            tefuda[i][5][1] = -1;
+            break;
+        case DAIHINMIN:
+            tefuda[i][5][1] = -2;
+            break;
+        }
+        
+        send815(tefuda[i], players.id[i].sockfd );//それぞれに通知
+    }
+    
+    result->setFirstCards( tefuda );
+    */
+}
+
+void Game::sendFirstCards( Result *result ){
     players.turn = -1;//交換時にはターンの人が変わる可能性があるのでここでは入れない
     
     //最初の手札を送付する
@@ -565,6 +668,7 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
     return true;
 }
 
+/*
 void Game::dealCards(){
     COUT<<"dc"<<endl;
     //カードを配る
@@ -608,6 +712,140 @@ void Game::dealCards(){
         target = ( target + 1 ) % ( players.size() );
     }
     
+}
+*/
+
+void Game::dealCards( Result *result){
+    COUT<<"dc"<<endl;
+    //カードを配る
+    
+    vector<int> deck;
+    
+    //通常のカード
+    for(int i=0; i<4; i++){
+        for(int j=1; j<=13; j++){
+            deck.push_back( i*14 + j );
+        }
+    }
+    //jokerの枚数
+    for(int i=0; i<config.JOKER_NUM; i++){
+        deck.push_back( 14*4 + 1 );
+    }
+    
+    //deckをshuffle
+    for(int i=0; i<deck.size()*2; i++){
+        int a = (int)( (deck.size()-1) * ((double)random()/RAND_MAX));
+        int b = (int)( (deck.size()-1) * ((double)random()/RAND_MAX));
+        int c = deck[a];
+        deck[a] = deck[b];
+        deck[b] = c;
+    }
+    
+    //プレイヤのカードを初期化してから
+    for(int i=0; i<players.size(); i++){
+        players.id[i].initCard();
+    }
+    //deckを一枚ずつ分配していく
+    //身分差があれば大富豪を起点、でなければ席順の若い人を起点
+    int target = players.convIDtoSekiNum( ( players.isMisalliance() ) ? players.mibunId(DAIFUGO) : players.sekijun[0]);//大富豪から
+    
+    while( !deck.empty() ){
+        players.id[players.sekijun[target]].cards[deck[0]/14][deck[0]%14] = 1;//入れて
+        players.id[players.sekijun[target]].cards_num++;//枚数を増やして
+        deck.erase( deck.begin() );//削除
+        
+        //次の人
+        target = ( target + 1 ) % ( players.size() );
+    }
+    
+    //搾取が行われれば行う
+    exploit( result );
+}
+
+void Game::dealCards( Result *result, vector<string> &tefudaSet){
+    COUT<<"dc"<<endl;
+    //カードを配る
+    //tefudaSetで
+    
+    //身分差があれば大富豪を起点、でなければ席順の若い人を起点
+    int target = players.convIDtoSekiNum( ( players.isMisalliance() ) ? players.mibunId(DAIFUGO) : players.sekijun[0]);//大富豪から
+    string suit = "SHDCJ";
+    string rank = "3456789XJQKA2R";
+    
+    //プレイヤのカードを初期化してから
+    for(int i=0; i<players.size(); i++){
+        players.id[i].initCard();
+    }
+    
+    for(int i=0; i<config.PLAYER_NUM; i++){
+        //一人一人に対して手札セットを割り当てていく
+        //cout << tefudaSet[i] << endl;
+        for(int j=0; j<tefudaSet[i].length()-1; j++){
+            if( tefudaSet[i][j] == ' ' ){
+                continue;
+            }
+            int s=-1, r=-1;
+            for(int k=0; k<5; k++){
+                //cout << suit[k] << " "<< tefudaSet[i][j] << endl;
+                if( suit[k] == tefudaSet[i][j]){
+                    s = k;
+                    break;
+                }
+            }
+            j++;//1つ進める
+            for(int k=0; k<14; k++){
+                //cout << rank[k] << " "<< tefudaSet[i][j] << endl;
+                if( rank[k] == tefudaSet[i][j]){
+                    r = k;
+                    break;
+                }
+            }
+            if( s < 0 || r < 0 ){
+                //cout << " ~~~~ " << endl;
+                exit(1);
+            }
+            if( s == 4){
+                players.id[players.sekijun[target]].cards[ 4 ][ 1 ] = 1;//入れて
+            }else{
+                //cout << s << " " << r << " " << suit[s] << " " << rank[r] << endl;
+                players.id[players.sekijun[target]].cards[ s ][ r+1 ] = 1;//入れて
+            }
+            players.id[players.sekijun[target]].cards_num++;//枚数を増やして
+            
+        }
+        
+        //次の人
+        target = ( target + 1 ) % ( players.size() );
+    }
+    
+    /*
+    cout << "end dis" << endl;
+    
+    for(int i=0; i<5; i++){
+        cout << i << endl;
+        print515( players.id[i].cards );
+    }
+    */
+    //搾取が行われれば行う
+    exploit( result );
+}
+
+void Game::exploit( Result *result ){
+    if( players.isMisalliance() ){//カード交換（搾取）
+        //最初の手札通知では、大富豪・富豪には"搾取後"の手札が通知される。
+        //一方で大貧民・貧民には"搾取前"の手札が通知される。
+        int data[8][15] = {{0}};
+        //大貧民から大富豪に
+        selectHighCard(data, players.id[players.mibunId(DAIHINMIN)].cards, 2);//2枚選び
+        result->addChange(players.mibunId(DAIHINMIN), players.mibunId(DAIFUGO), data);//大貧民の交換カードを保存
+        addCard(players.id[players.mibunId(DAIFUGO)].cards, data);//足す
+        memset(data, 0, sizeof(data));
+        //貧民から富豪に
+        selectHighCard(data, players.id[players.mibunId(HINMIN)].cards, 1);//1枚選び
+        result->addChange(players.mibunId(HINMIN), players.mibunId(FUGO), data);//貧民の交換カードを保存
+        addCard(players.id[players.mibunId(FUGO)].cards, data);//足す
+        
+    }
 }
 
 bool checkChangeCardUEC(int data[8][15], Player &player){
