@@ -66,6 +66,7 @@ public:
     
     void setFirstCards( int cards[5][8][15] );
     
+    Result();
     bool sekigae;
     bool reset;
     Configure mConfig;
@@ -81,6 +82,7 @@ public:
     Results( Players &players );
     vector<string> name;//各プレイヤーの名前
     
+    vector<int> tempScore;//中途得点
     vector< vector<int> > score;//各プレイヤーの得点
     vector< vector< vector<int> > > transition;//各プレイヤーの身分の遷移
     

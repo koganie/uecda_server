@@ -2,6 +2,7 @@
 #define DEFINE_YAKU
 
 #include <string>
+#include<vector>
 #include "bit.h"
 
 using namespace std;
@@ -63,7 +64,12 @@ public:
     void setBitTo815(int dest[8][15]) const;//bit‚ð815”z—ñ‚É•ÏŠ·‚·‚é
     
     string getStr();
+    
 };
+
+void removeLap(vector<Yaku> *vecCard, int64 cdBit);
+void removeYaku(vector<Yaku> *vecCard, Yaku &yaku);
+void removePass(vector<Yaku> *vecCard);
 
 #endif
 

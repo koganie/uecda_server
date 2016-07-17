@@ -1,4 +1,4 @@
-COMPILER  = g++
+COMPILER  = g++ -std=c++11
 CFLAGS    = -g -MMD -MP -Wall -Wextra -Winit-self -Wno-missing-field-initializers
 ifeq "$(shell getconf LONG_BIT)" "64"
   LDFLAGS =

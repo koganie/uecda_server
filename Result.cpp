@@ -1,9 +1,10 @@
-#include "Result.h"
-#include "common.h"
-#include "debug.h"
 #include<cstdlib>
 #include<cstdio>
 #include <iomanip>
+#include "Result.h"
+#include "common.h"
+#include "debug.h"
+#include "makeYaku.h"
 using namespace std;
 
 Action::Action( int id, const Yaku &yaku ){
@@ -32,6 +33,11 @@ Change::Change( int from, int to, const int cards[8][15] ){
 void Change::print(){
     cout << " change : " << mFrom << " " << mTo << endl;
     print815( mCards );
+}
+
+Result::Result(){
+    sekigae = false;
+    reset = false;
 }
 
 void Result::addAct( int id, const Yaku &yaku ){
@@ -190,52 +196,8 @@ void Results::push_back(const Result &result){
     results.push_back(result);
 }
 
-/*
-void Results::calcScore( int num ){
-    //‰½”Ô‚ª
-    int scores[5][5]={{0}};
-    for(int i=0; i<results.size(); i++){
-        for(int j=0; j<5; j++){
-            scores[results[i].mAgari[j]][j]++;
-        }
-    }
-    if(num == 1){
-        for(int i=0; i<5; i++){
-            int temp = 0;
-            for(int j=0; j<5; j++){
-                temp += scores[i][j] * (5-j);
-            }
-            score.push_back( temp );
-        }
-    }else if(num == 2){
-        for(int i=0; i<5; i++){
-            int temp = 0;
-            for(int j=0; j<5; j++){
-                temp += scores[i][j] * (2-j);
-            }
-            score.push_back( temp );
-        }
-    }
-}
-*/
-
 void Results::calcScore( int num ){
     if( num == 1){
-        /*
-        for(int i=0; i<1; i++){
-            vector<int> temp;
-            for(int j=0; j<results[i].mAMibun.size(); j++){
-                temp.push_back( 5 - results[i].mAMibun[j]);
-            }
-            score.push_back( temp );
-        }
-        for(int i=1; i<results.size(); i++){
-            vector<int> temp;
-            for(int j=0; j<results[i].mAMibun.size(); j++){
-                temp.push_back( score[score.size()-1][j] + 5 - results[i].mAMibun[j]);
-            }
-            score.push_back( temp );
-        }*/
         for(int i=0; i<results.size(); i++){
             vector<int> temp;
             for(int j=0; j<results[i].mAMibun.size(); j++){
@@ -261,19 +223,6 @@ void Results::calcScore( int num ){
         }
     }
 }
-
-/*
-void Result::setup(vector<Player> *player){
-    //players‚Å•Û‘¶‚·‚é‚à‚Ì‚Í•Û‘¶‚·‚é
-    vector<int> mibun, sekijun;
-    for(int i=0; i<player->size(); i++){
-        mibun.push_back( (*player)[i].mibun );
-        sekijun.push_back( (*player).sekijun[i] );
-    }
-    mMibun = mibun;
-    mSekijun = sekijun;
-}
-*/
 
 void Result::finish(Players &players){
     //players‚Å•Û‘¶‚·‚é‚à‚Ì‚Í•Û‘¶‚·‚é
@@ -380,6 +329,7 @@ Results::Results( Players &players ){
     for(int i=0; i<5; i++){
         string pn = players.id[i].name;
         name.push_back( pn );
+        tempScore.push_back( 0 );
     }
 }
 
@@ -565,5 +515,4 @@ void Results::writeHistory2(){
         ofs << endl;
     }
 }
-
 

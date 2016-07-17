@@ -68,10 +68,10 @@ void Player::subtraction(const int card[8][15]){
     }
 }
 
-void Players::sekigae(){
+void Players::sekigae( Random *random ){
     //席替え
-    int a = (int)( (id.size()-1) * ((double)random()/RAND_MAX));
-    int b = (int)( (id.size()-1) * ((double)random()/RAND_MAX));
+    int a = (int)( (id.size()-1) * random->rand() );
+    int b = (int)( (id.size()-1) * random->rand() );
     int c = sekijun[a];
     sekijun[a] = sekijun[b];
     sekijun[b] = c;
@@ -89,7 +89,7 @@ int Players::size(){
     return id.size();
 }
 
-bool Players::isMisalliance(){
+bool Players::isInequality(){
     if(id[0].mibun != HEIMIN || id[1].mibun != HEIMIN){//プレイヤーに身分差がついていれば
         return true;
     }else{

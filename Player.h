@@ -7,6 +7,7 @@
 //#include "Result.h"
 #include "Yaku.h"
 #include "common.h"
+#include "Random.h"
 
 using namespace std;
 
@@ -58,9 +59,9 @@ public:
     
     int mibunId( int mibun );
     int size();
-    void sekigae();
+    void sekigae( Random *random );
     void reset();
-    bool isMisalliance();
+    bool isInequality();
     //void update( Result &result );
     
     void setCardsNum();

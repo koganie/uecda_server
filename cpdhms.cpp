@@ -2,7 +2,10 @@
 #include<vector>
 #include<cstdlib>
 #include<ctime>
+#include<random>
+#include <functional>
 
+#include "Random.h"
 #include "connection.h"
 #include "Configure.h"
 #include "Game.h"
@@ -13,9 +16,7 @@ using namespace std;
 #define FILE_OUTPUT //棋譜のファイル出力しない場合はコメントアウト
 
 int main(int argc, char *argv[]){
-    
-    srand((unsigned int)time(NULL));
-    
+
     Configure config(argc, argv);//gameの設定を収める
     config.printRules();//ルールの出力
     
@@ -24,14 +25,16 @@ int main(int argc, char *argv[]){
     //player_num人のプレイヤーを待つ
     acceptClient(config, &players);
     
-    Results results( players );//試合の記録用クラス
-    results.clockStart();//全試合の開始時間をメモる
-    
     //指定手札セットがあるなら読み込む
     vector< vector<string> > tefudaSet;
     if( config.USE_TEFUDA_SET ){
         readTefudaSet( &tefudaSet );
     }
+
+    Random random;//乱数生成器
+    Results results( players );//試合の記録用クラス
+    results.clockStart();//全試合の開始時間をメモる
+    
     //全ゲーム
     for(int game_count=1; game_count<=config.GAME_NUM; game_count++){
         
@@ -40,19 +43,13 @@ int main(int argc, char *argv[]){
         if(config.isReset(game_count)){//身分のリセット
             players.reset();
             result.reset = true;
-            result.sekigae = false;
         }else if(config.isSekigae(game_count)){//席替え（提出の順番）が行われるなれば
-            players.sekigae();
-            result.reset = false;
+            players.sekigae( &random );
             result.sekigae = true;
-        }else{
-            result.reset = false;
-            result.sekigae = false;
         }
         
         //サブゲームを定義する
-        //Game game(config, players, &result, tefudaSet);
-        Game game(config, players, &result);
+        Game game(config, players, &result, &random);
         if( tefudaSet.size() >= game_count){
             //割り当てられた手札セットがあるならそれで試合を行う
             game.dealCards( &result, tefudaSet[game_count-1] );
@@ -60,7 +57,7 @@ int main(int argc, char *argv[]){
             //指定の手札セットがないのなら適当に分配する
             game.dealCards( &result );
         }    
-        game.sendFirstCards( &result );
+        game.sendFirstCards( &result );//最初のカードを通知する
         
         //試合を行う
         game.start( &result );//ゲームを開始して結果をresultに収める

@@ -1,11 +1,13 @@
 #include<iostream>
 #include<string.h>
-#include<vector>
+
 #include<cstdlib>
 #include <sstream>
 
 #include "Yaku.h"
 #include "bit.h"
+#include "common.h"
+#include "debug.h"
 
 using namespace std;
 
@@ -130,7 +132,8 @@ void Yaku::setBitTo815(int dest[8][15]) const{
     int i,j;
     for(i=0;i<4;i++){
         for(j=1;j<=13;j++){
-            if(mCardBit&BITull(i*13+(j-1))){
+            //if(mCardBit&BITull(i*13+(j-1))){
+            if(mCardBit&CARDBIT(i, j)){
                 dest[i][j]=1;
             }else{
                 dest[i][j]=0;
@@ -307,12 +310,52 @@ void removeLap(vector<Yaku> *vecCard, int64 cdBit){
     }
 }
 
+void removeYaku(vector<Yaku> *vecCard, Yaku &yaku){
+    //役集合からyakuをとり除く
+    int i = 0;
+    vector<Yaku> test;
+    while( i < (*vecCard).size() ){//カード集合の中を探索していく
+    	if( (*vecCard)[i].mNum==yaku.mNum && (*vecCard)[i].mRankL==yaku.mRankL &&
+            (*vecCard)[i].mRankR==yaku.mRankR && (*vecCard)[i].mSuits==yaku.mSuits &&
+            (*vecCard)[i].mJposSuit==yaku.mJposSuit && (*vecCard)[i].mJposRank==yaku.mJposRank 
+        ){//同じ
+            test.push_back((*vecCard)[i]);
+            (*vecCard).erase( (*vecCard).begin() + i);//集合から取り除く
+        }else{//被った
+            i++;//操作点を進める
+        }
+    }
+    if( test.size() > 1){
+        cout<<"hen!"<< endl;
+        yaku.print();
+cout << yaku.mNum << " " << yaku.mRankL << " " << yaku.mRankR << " " << yaku.mSuits << endl;
+cout << endl;
+        for(int j=0; j<test.size(); j++){
+            test[j].print();
+    cout<<endl;        
+}
+    exit(1);
+    }else if(test.size()==0){
+cout<<"yapparihen"<<endl;
+yaku.print();
+cout << yaku.mNum << " " << yaku.mRankL << " " << yaku.mRankR << " " << yaku.mSuits << " " << yaku.mJposSuit << " " << yaku.mJposRank << endl;
+cout<<"----"<<endl;
+for(int j=0;j<(*vecCard).size();j++){
+    (*vecCard)[j].print();
+cout << (*vecCard)[j].mNum << " " << (*vecCard)[j].mRankL << " " << (*vecCard)[j].mRankR << " " << (*vecCard)[j].mSuits << " " << (*vecCard)[j].mJposSuit << " " << (*vecCard)[j].mJposRank << endl;cout<<endl;
+}
+exit(1);
+    }
+}
+
 void removePass(vector<Yaku> *vecCard){
     //役集合からPassをとり除く
     int i = 0;
     while( i < (*vecCard).size() ){//カード集合の中を探索していく
-        if( (*vecCard)[i].isPass() == 0 ){
+        if( (*vecCard)[i].isPass() == true ){
             (*vecCard).erase( (*vecCard).begin() + i);//集合から取り除く
+        }else{
+            i++;
         }
     }
 }
@@ -359,6 +402,7 @@ void Yaku::print() const{
     int cards[8][15] = {{0}};
     //cout << " gg" << endl;
     setBitTo815( cards );
+    //print815( cards );
     //cout << " bb " << endl;
     
     for(int j=0; j<=5; j++){
@@ -377,7 +421,7 @@ void Yaku::print() const{
 string Yaku::getStr(){
     
     string suit = "SHDCshdc ";
-    string rank = "B3456789XJQKRA2U";
+    string rank = "B3456789XJQKA2U";
     
     int cards[8][15] = {{0}};
     setBitTo815( cards );

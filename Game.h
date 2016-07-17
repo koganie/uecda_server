@@ -2,6 +2,7 @@
 #define DEFINE_GAME
 
 #include <vector>
+#include "Random.h"
 #include "Configure.h"
 #include "Table.h"
 #include "Player.h"
@@ -17,6 +18,7 @@ private:
     
     Table table;//場の情報
     
+    Random *random;//乱数生成器
     //vector<int> mibun;//身分情報
     //vector<int> sekijun;//席情報（提出順にプレイヤー番号が入っている）
     //vector<int> agari;//あがり情報（あがった順にプレイヤー番号が入っている）
@@ -57,7 +59,7 @@ private:
     
 public:
     //Game(const Configure &config, const vector<Player> &p, Result *result);
-    Game(const Configure &config, const Players &p, Result *result);
+    Game(const Configure &config, const Players &p, Result *result, Random *r);
     
     void dealCards( Result *result );
     void dealCards( Result *result , vector<string> &tefudaSet);

@@ -34,6 +34,29 @@ void deleteCard(int c1[8][15], int c2[8][15]){
     }
 }
 
+void deleteCard2(int c1[8][15], int c2[8][15]){
+    //c1‚©‚çc2‚ğÁ‚·
+    for(int i=0; i<5; i++){
+        for(int j=0; j<15; j++){
+            if(c2[i][j] == 1){
+                c1[i][j] = 0;
+            }
+            else if(c2[i][j] == 2){
+                c1[4][1] = 0;
+            }
+        }
+    }
+}
+
+void copyCard(int c1[8][15], int c2[8][15]){
+    //c1‚©‚çc2‚ğÁ‚·
+    for(int i=0; i<5; i++){
+        for(int j=0; j<15; j++){
+            c1[i][j] = c2[i][j];
+        }
+    }
+}
+
 void selectHighCard(int dest[8][15], int src[8][15], int num){
     //src‚Ìƒ‰ƒ“ƒN‚Ì‚‚¢•û‚©‚çn–‡‚ğdest‚É“ü‚ê‚é
     int n = 0;
