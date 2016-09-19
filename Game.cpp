@@ -119,9 +119,6 @@ void Game::start( Result *result){
         }else{//役として成り立っていない
             //cout << "unable to convert into Yaku!" << endl;
             //UECルールではパス（出せる手がない場合）もここにくるので出力させているときりがない
-            //table.print();
-            //print815( data );
-            //yaku.printBit();
             yaku.demoPass();
             num = 8;
         }
@@ -292,6 +289,11 @@ bool Game::isSubmittableYaku(const Yaku &yaku){
     COUT<<"isty"<<endl;
     //提出カードが上に出せるのか
     
+    //spade3
+    if(config.RULE_SPADE3 &&table.mBafuda.isJTanki() && yaku.isSpade3()){
+        return true;
+    }
+
     //場が縛りで出すスートが異なり、ジョーカー単騎でもない
     if( table.isShibari() && (table.mBafuda.mSuits!=yaku.mSuits) && !yaku.isJTanki() ){
         COUT << "" << endl;

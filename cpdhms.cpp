@@ -13,7 +13,7 @@
 
 using namespace std;
 
-#define FILE_OUTPUT //棋譜のファイル出力しない場合はコメントアウト
+//#define FILE_OUTPUT //棋譜のファイル出力しない場合はコメントアウト
 
 int main(int argc, char *argv[]){
 
