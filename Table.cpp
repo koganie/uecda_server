@@ -34,8 +34,13 @@ bool Table::isKakumei() const{
 bool Table::isShibari() const{
     return (baBit&(IS_BA_SHIBARI))!=0;//縛りか？
 }
+/*
 bool Table::isJTanki() const{
     return (baBit&(IS_BA_JOKER))!=0;//ジョーカー単騎か？
+}
+*/
+bool Table::isJTanki() const{
+    return mBafuda.isJTanki();//ジョーカー単騎か？
 }
 bool Table::is11back() const{
     return (baBit&(IS_BA_11BACK))!=0;//11バックか？

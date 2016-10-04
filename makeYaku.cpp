@@ -130,7 +130,7 @@ void pickLegalTanki(vector<Yaku> *legalYaku, const vector<Yaku> &allYaku, const 
     
     if(table.isJTanki()){//ジョーカー単騎はスペ３しか考えられない
         for(i=0; i < allYaku.size(); i++){
-            if(allYaku[i].isSpade3()==1){
+            if(allYaku[i].isSpade3()){
                 legalYaku->push_back( allYaku[i] );
                 break;
             }

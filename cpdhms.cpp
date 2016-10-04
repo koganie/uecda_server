@@ -87,11 +87,13 @@ int main(int argc, char *argv[]){
 
     //ƒtƒ@ƒCƒ‹‚Ö‚Ì•Û‘¶
     #ifdef FILE_OUTPUT
-    cout << " file output start" << endl;
-    results.writeScore();
-    results.writeTransition();
-    results.writeHistory2();
-    cout << " file output done" << endl;
+    if( config.USE_FILE_OUTPUT ){
+        cout << " file output start" << endl;
+        results.writeScore();
+        results.writeTransition();
+        results.writeHistory4();
+        cout << " file output done" << endl;
+    }
     #endif
 }
 

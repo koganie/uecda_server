@@ -22,6 +22,7 @@ public:
     bool RULE_11BACK;//「11バック」を使うか TODO
     bool RULE_MIYAKOOCHI;//「都落ち」を使うか TODO
     bool USE_TEFUDA_SET;
+    bool USE_FILE_OUTPUT;
     
     int RULE_SEKIGAE_NUM;//何試合行うと席順をリセットするか
     int RULE_RESET_NUM;//何試合行うと身分等のリセットを行うか

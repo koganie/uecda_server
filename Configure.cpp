@@ -110,7 +110,16 @@ bool Configure::setRule(){
 		strupr2(dat2);//?
 		dat1=strtok(dat2," \r\t\n");//スペースまでdat1に
 		if(dat1!=NULL){
-		    if(strcmp(dat1,"USE_TEFUDA_SET")==0){
+		    if(strcmp(dat1,"USE_FILE_OUTPUT")==0){
+				dat1=strtok(NULL," \r\t\n");
+				if(strcmp(dat1,"YES")==0){
+					USE_FILE_OUTPUT=1;	
+			    }else if(strcmp(dat1,"NO")==0){
+					USE_FILE_OUTPUT=0;
+			    }else{
+			        error=1;
+			    }
+			}else if(strcmp(dat1,"USE_TEFUDA_SET")==0){
 				dat1=strtok(NULL," \r\t\n");
 				if(strcmp(dat1,"YES")==0){
 					USE_TEFUDA_SET=1;	

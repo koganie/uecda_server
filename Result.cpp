@@ -1,6 +1,7 @@
 #include<cstdlib>
 #include<cstdio>
 #include <iomanip>
+#include<cmath>
 #include "Result.h"
 #include "common.h"
 #include "debug.h"
@@ -294,6 +295,18 @@ void Results::calcTransition(){
 }
 
 void Results::print(){
+    string mibun[6] = {"DFU","FU","HE","HI","DHI","BYD"};
+    
+    int maxKeta = 0, printKeta=0;
+    for(int i=0; i<5; i++){
+        for(int j=0; j<6; j++){
+            for(int k=0; k<5; k++){
+                if( log10(transition[i][j][k])+1 > maxKeta ){
+                    maxKeta = (int)log10(transition[i][j][k])+1;
+                }
+            }
+        }
+    }
     
     for(int i=0; i<5; i++){
         //cout << "Player " << i << " : " << score[i] << endl;
@@ -303,17 +316,33 @@ void Results::print(){
         }
         //cout << i << ":" << name[i] << " = " << score[score.size()-1][i] << endl;
         cout << i << ":" << name[i] << " = " << temp << endl;
+        cout << "   ";
+        if( maxKeta > 4 ){
+            printKeta = maxKeta;
+        }else{
+            printKeta = 4;
+        }
+        for(int j=0; j<5; j++){
+            cout << setw(printKeta) << mibun[j];
+        }
+        cout << endl;
         
+        if( maxKeta > 3 ){
+            printKeta = maxKeta;
+        }else{
+            printKeta = 3;
+        }
         for(int j=0; j<6; j++){
             int temp = 0;
+            cout << setw(printKeta) << mibun[j] << ":";
             for(int k=0; k<5; k++){
                 temp += transition[i][j][k];
-                cout << transition[i][j][k] << " ";
+                cout << setw(printKeta) << transition[i][j][k] << " ";
             }
             cout << " (";
             for(int k=0; k<5; k++){
                 if(temp != 0){
-                    cout << fixed << setprecision(1) << 100*(double)transition[i][j][k]/temp << " ";
+                    cout << setw(4) << fixed << setprecision(1) << 100*(double)transition[i][j][k]/temp << " ";
                 }else{
                     cout << "--- ";
                 }

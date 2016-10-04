@@ -434,7 +434,7 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
     }
     int cards_num = 0, joker_num = 0;
     vector<int> suit, rank, fake;//発見されたカードをいれていく
-    for(int i=0; i<8; i++){
+    for(int i=0; i<5; i++){//5列目まで見る
         for(int j=0; j<15; j++){
             if(data[i][j]==0){//提出されていない
                 
@@ -491,6 +491,9 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
             }
             if(rank[i]!=rank[i+1]){//rankが異なる
                 pair_flag=false;
+                if(rank[i]+1!=rank[i+1]){//1つずつ続いていない
+                    kaidan_flag=false;
+                }
             }
         }
     }
@@ -518,7 +521,8 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
         yaku->mRankR = rank[0];
         yaku->mRankL = rank[0];
         for(int i=0; i<suit.size(); i++){
-            yaku->setSuit(suit[i]);
+            if(suit[i]!=4)
+                yaku->setSuit(suit[i]);
         }
         for(int i=0; i<suit.size(); i++){//jokerの位置を保存
             if(fake[i]){
@@ -544,6 +548,14 @@ bool Game::conv815toYaku(Yaku *yaku, int data[8][15]){//
         return false;
     }
     
+     for(int i=0;i<suit.size();i++){
+        if(suit[i]>=5){
+            cout<<"suit 5"<<endl;
+            print815(data);
+            yaku->print();
+            exit(1);
+        }
+    }
     //この長い審査を通った時ようやくtrueが蛙
     return true;
 }
