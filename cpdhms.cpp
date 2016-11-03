@@ -13,7 +13,7 @@
 
 using namespace std;
 
-//#define FILE_OUTPUT //棋譜のファイル出力しない場合はコメントアウト
+#define FILE_OUTPUT //棋譜のファイル出力しない場合はコメントアウト
 
 int main(int argc, char *argv[]){
 
@@ -91,8 +91,10 @@ int main(int argc, char *argv[]){
         cout << " file output start" << endl;
         results.writeScore();
         results.writeTransition();
-        results.writeHistory4();
+        //results.writeHistory5();
         cout << " file output done" << endl;
+    }else{
+        cout << "no output" <<endl;
     }
     #endif
 }

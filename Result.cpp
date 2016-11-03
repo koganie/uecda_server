@@ -282,12 +282,14 @@ void Results::calcTransition(){
         if(results[i].mMibun[0]==HEIMIN && results[i].mMibun[1]==HEIMIN){
             //平等ターンより始まった
             for(int k=0; k<results[i].mAgari.size(); k++){
-                transition[results[i].mAgari[k]][5][k]++;
+                //transition[results[i].mAgari[k]][5][k]++;
+                transition[k][5][results[i].mAMibun[k]]++;
             }
         }else{
             //すでに身分がついていて、新しい身分に変わった
             for(int k=0; k<results[i].mAgari.size(); k++){
-                transition[results[i].mAgari[k]][results[i].mMibun[k]][k]++;
+                //transition[results[i].mAgari[k]][results[i].mMibun[k]][k]++;
+                transition[k][results[i].mMibun[k]][results[i].mAMibun[k]]++;
             }
         }
     }
