@@ -384,14 +384,15 @@ void Game::update(const Yaku &yaku){//–ð‚Å‚ÌXV
         }
     }
     
-    table.mBafuda = yaku;
-    
     //”›‚è‚Ì”­¶‰Â”Û
-    if( config.RULE_SHIBARI && table.mBafuda.mSuits == yaku.mSuits){
+    if( config.RULE_SHIBARI && yaku.mSuits>0 && table.mBafuda.mSuits == yaku.mSuits){
         table.setShibari(1);
     }else{
         table.mBafuda.mSuits = yaku.mSuits;
     }
+    
+    table.mBafuda = yaku;
+    
     //–ð‚ÌŽí—Þ
     if(yaku.isKaidan()){
         table.setKaidan(true);
