@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
         cout << " file output start" << endl;
         results.writeScore();
         results.writeTransition();
-        //results.writeHistory5();
+        results.writeHistory2();
         cout << " file output done" << endl;
     }else{
         cout << "no output" <<endl;

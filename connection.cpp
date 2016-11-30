@@ -2,6 +2,12 @@
 #include<string.h>
 #include<cstdlib>
 #include<unistd.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
 #include"Configure.h"
 #include"connection.h"
 
@@ -15,7 +21,8 @@ void acceptClient(const Configure &config, Players *players){
 	fd_set org_target_fds;
     
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);//ソケットを識別する記述子
-    bzero((char *) &wait_addr, sizeof(wait_addr));
+    //bzero((char *) &wait_addr, sizeof(wait_addr));
+    memset((char *) &wait_addr, 0, sizeof(wait_addr));
     wait_addr.sin_family = PF_INET;
     wait_addr.sin_addr.s_addr = htons(INADDR_ANY);
     wait_addr.sin_port = htons(config.PORT_NUM);

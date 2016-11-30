@@ -56,7 +56,7 @@ void Game::sendFirstCards( Result *result ){
     }
     
     //‹L˜^‚µ‚Ä‚¨‚­
-    result->setFirstCards( tefuda );
+    //result->setFirstCards( tefuda );
 }
 
 void Game::start( Result *result){
@@ -604,6 +604,11 @@ void Game::dealCards( Result *result){
         target = ( target + 1 ) % ( players.size() );
     }
     
+    int tefuda[5][8][15]={{0}};
+    for(int i=0;i<players.size();i++){
+        copyCard( tefuda[i], players.id[i].cards );
+    }
+    result->setFirstCards( tefuda );
     //ïæ‚ªs‚í‚ê‚ê‚Îs‚¤
     exploit( result );
 }

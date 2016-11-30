@@ -13,15 +13,8 @@ using namespace std;
 class Game{
 private:
     Configure config;//ゲームのルール
-    //vector<Player> players;//参加プレイヤー配列
-    Players players;//参加プレイヤー配列
-    
-    Table table;//場の情報
-    
     Random *random;//乱数生成器
-    //vector<int> mibun;//身分情報
-    //vector<int> sekijun;//席情報（提出順にプレイヤー番号が入っている）
-    //vector<int> agari;//あがり情報（あがった順にプレイヤー番号が入っている）
+    
     int turn;//どの席のターンか（sekijunの添字）
     
     int convSekiToPID(int idx);//idx番の席に座っているプレイヤのIDを返す
@@ -33,24 +26,11 @@ private:
     void makeTefuda815(int data[5][8][15]);//UECda形式の送信用の配列に加工する
     void makeBafuda815(int data[5][8][15]);//UECda形式の送信用の配列に加工する
     
-    //void make815Table(int card[8][15]);//テーブルの情報をカードに書き込む
-    //void make815Player(int card[8][15]);//プレイヤーの情報をカードに書き込む
-    
-    void update(const Yaku &yaku);//盤面更新
     void changeCardsUEC( Result *result );
     void exploit( Result *result );
-    //void dealCards();
-    //bool checkValidCardUEC(Yaku yaku);//提出役が提出可能かどうか確認を行う
+    
     bool conv815toYaku(Yaku *yaku, int card[8][15]);
     bool isSubmittableYaku(const Yaku &yaku);
-    //bool isCardChangePhase();
-    
-    //
-    void purge();
-    //
-    void pass();
-    void recover();
-    void nextTurn();
     
     void setMibun();
     void setSekijun();
@@ -58,7 +38,9 @@ private:
     void makeNumArray( vector<int> *array );
     
 public:
-    //Game(const Configure &config, const vector<Player> &p, Result *result);
+    Players players;//参加プレイヤー配列
+    Table table;//場の情報
+
     Game(const Configure &config, const Players &p, Result *result, Random *r);
     
     void dealCards( Result *result );
@@ -66,9 +48,12 @@ public:
     void sendFirstCards( Result *result );
     
     void start( Result *result );
-    //void sekigae();
-    //void reset();
-    
+
+    void update(const Yaku &yaku);//盤面更新
+    void purge();//場を流す
+    void pass();//現在プレイヤがパスをした
+    void recover();//パスから復活する
+    void nextTurn();//次のプレイヤーにターンを回す
 };
 
 bool checkChangeCardUEC(int data[8][15], Player &player);
