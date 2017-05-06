@@ -422,7 +422,7 @@ void Yaku::print() const{
 
 string Yaku::getStr(){
     
-    string suit = "SHDCshdc ";
+    string suit = "SHDCshdcJ";
     string rank = "B3456789XJQKA2U";
     
     int cards[8][15] = {{0}};

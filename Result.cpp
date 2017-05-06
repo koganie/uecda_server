@@ -95,6 +95,7 @@ void Results::clockEnd(){
     mTime = (double)(mEnd - mStart) / CLOCKS_PER_SEC;
 }
 
+/*
 void Results::printOneGameReport(){
     if(results[results.size()-1].reset){
         cout << "reset" << endl;
@@ -106,6 +107,7 @@ void Results::printOneGameReport(){
         cout << results[results.size()-1].mMibun[i] << " => " << results[results.size()-1].mAMibun[i] << endl;
     }
 }
+*/
 
 void printCardStr( int cards[8][15] ){
     string suit[5] = "DSCH";
@@ -193,36 +195,41 @@ void Result::print(){
     cout << endl;
 }
 
+void Result::printOneGameReport( int num ){
+    cout << num << " games end"<<endl;
+    if(reset){
+        cout << "reset" << endl;
+    }else if(sekigae){
+        cout << "sekigae" << endl;
+    }
+    for(int i=0; i<mMibun.size(); i++){
+        cout << mMibun[i] << " => " << mAMibun[i] << endl;
+    }
+}
+
 void Results::push_back(const Result &result){
-    results.push_back(result);
+    //試合結果の登録
+    size += 1;
+    //results.push_back(result);
+    mMibun.push_back( result.mMibun );//試合前の身分を登録
+    mAMibun.push_back( result.mAMibun );//試合後の身分を登録
+    
 }
 
 void Results::calcScore( int num ){
-    if( num == 1){
-        for(int i=0; i<results.size(); i++){
-            vector<int> temp;
-            for(int j=0; j<results[i].mAMibun.size(); j++){
-                temp.push_back( 5 - results[i].mAMibun[j]);
-            }
-            score.push_back( temp );
+    int point[2][5] = {
+        {5,4,3,2,1},    //大貧民1点、・・・、大富豪5点
+        {2,1,0,-1,-2}   //大貧民-2点、・・・、大富豪2点
+    };
+    
+    for(int i=0; i<size; i++){
+        vector<int> temp;
+        for(int j=0; j<mAMibun[0].size(); j++){
+            temp.push_back( point[num][mAMibun[i][j]] );
         }
+        score.push_back( temp );
     }
-    else if(num == 2){
-        for(int i=0; i<1; i++){
-            vector<int> temp;
-            for(int j=0; j<results[i].mAMibun.size(); j++){
-                temp.push_back( 2 - results[i].mAMibun[j]);
-            }
-            score.push_back( temp );
-        }
-        for(int i=1; i<results.size(); i++){
-            vector<int> temp;
-            for(int j=0; j<results[i].mAMibun.size(); j++){
-                temp.push_back(  score[score.size()-1][j] + 2 - results[i].mAMibun[j]);
-            }
-            score.push_back( temp );
-        }
-    }
+
 }
 
 void Result::finish(Players &players){
@@ -267,8 +274,10 @@ void Result::setFirstCards( int cards[5][8][15] ){
 }
 
 void Results::calcTransition(){
+    //身分の遷移を調べる
     
-    for(int j=0; j<results[0].mMibun.size(); j++){
+    //transition配列のセットアップ
+    for(int j=0; j<mMibun[0].size(); j++){
         vector< vector<int> > temp1;
         for(int i=0; i<6; i++){
             vector<int> temp( 5, 0 );
@@ -277,19 +286,17 @@ void Results::calcTransition(){
         transition.push_back(temp1);
     }
     
-    for(int i=0; i<results.size(); i++){
-        //cout << results[i].mMibun[0] << " " << results[i].mMibun[1] << endl;
-        if(results[i].mMibun[0]==HEIMIN && results[i].mMibun[1]==HEIMIN){
+    //遷移を調べる
+    for(int i=0; i<mAMibun.size(); i++){
+        if(mMibun[i][0]==HEIMIN && mMibun[i][1]==HEIMIN){
             //平等ターンより始まった
-            for(int k=0; k<results[i].mAgari.size(); k++){
-                //transition[results[i].mAgari[k]][5][k]++;
-                transition[k][5][results[i].mAMibun[k]]++;
+            for(int k=0; k<mAMibun[i].size(); k++){
+                transition[k][5][mAMibun[i][k]]++;
             }
         }else{
             //すでに身分がついていて、新しい身分に変わった
-            for(int k=0; k<results[i].mAgari.size(); k++){
-                //transition[results[i].mAgari[k]][results[i].mMibun[k]][k]++;
-                transition[k][results[i].mMibun[k]][results[i].mAMibun[k]]++;
+            for(int k=0; k<mAMibun[i].size(); k++){
+                transition[k][mMibun[i][k]][mAMibun[i][k]]++;
             }
         }
     }
@@ -353,14 +360,15 @@ void Results::print(){
         }
     }
     cout << "all time = " << (double)mTime << "s" << endl;
-    cout << "time ave. = " << (double)mTime/results.size() << "s" << endl;
+    cout << "time ave. = " << (double)mTime/size << "s" << endl;
 }
 
 Results::Results( Players &players ){
+    size = 0;
     for(int i=0; i<5; i++){
         string pn = players.id[i].name;
         name.push_back( pn );
-        tempScore.push_back( 0 );
+        //tempScore.push_back( 0 );
     }
 }
 
@@ -422,138 +430,69 @@ string Change::getStr(){
     return str;
 }
 
-void Results::writeHistory1(){
+void Results::writeHistory(){
     //棋譜をファイル出力する
-    //形式はとりあえず適当に書いておく
     
-    ofstream ofs("history.txt");
-    string suit = "SHDCJ";
-    string rank = "3456789XJQKA2R";
-    
-    //ofs << mConfig.getStr() << endl;//その試合のルールの出力
-    
+    ofstream ofs("history.txt", std::ios::out);
+   
     //プレイヤーの名前
     for(int i=0; i<name.size(); i++){
         ofs << i << " " << name[i] << endl;
     }
     ofs << endl;
-    for(int i=0; i<results.size(); i++){
-        //試合ごとresults[i]を見ていく
-        //最初の手札の出力
-        ofs << "TEFUDA" << endl;
-        
-        for(int j=0; j<results[i].mHands.size(); j++){
-            ofs << j << " " << results[i].mMibun[j] << " " << results[i].mSekijun[j] << " ";//プレイヤー番号と身分と席順
-            for(int k=0; k<5; k++){
-                for(int l=0; l<15; l++){
-                    if(results[i].mHands[j][k][l]==1){
-                        ofs << suit[k] << rank[l-1] << " ";
-                    }else if(results[i].mHands[j][k][l]==2){
-                        ofs << "JR ";
-                    }
-                }
-            }
-            ofs << endl;
-        }
-        ofs << endl;
-        if( results[i].mChange.size() > 0 ){//交換が行われている
-            ofs << "CHANGE" << endl;
-            for(int j=0; j<results[i].mChange.size(); j++){
-                //前後で盤面の出力をさせてもよい
-                ofs << results[i].mChange[j].getStr() << endl;
-            }
-            ofs << endl;
-            /*
-            ここで最終的な手札を出力させてもよい
-            */
-        }
-        
-        ofs << "HISTORY" << endl;
-        
-        for(int j=0; j<results[i].mHistory.size(); j++){
-            //各手各手を出力させていく
-            ofs << results[i].mHistory[j].mId << " ";
-            ofs << results[i].mHistory[j].mYaku.getStr() << endl;
-        }
-        
-        ofs << "MIBUN" << endl;//新しい身分（ゲームの結果）
-        for(int j=0; j<results[i].mHands.size(); j++){
-            ofs << j << " " << results[i].mAMibun[j] << endl;
-        }
-        ofs << endl;
-    }
 }
-
-void Results::writeHistory2(){
+void Result::writeHistory(){
     //棋譜をファイル出力する
     //形式はとりあえず適当に書いておく
     
-    ofstream ofs("history.txt");
+    ofstream ofs("history.txt", std::ios::app);
     string suit = "SHDCJ";
     string rank = "3456789XJQKA2R";
     
     //ofs << mConfig.getStr() << endl;//その試合のルールの出力
     
-    //プレイヤーの名前
-    for(int i=0; i<name.size(); i++){
-        ofs << i << " " << name[i] << endl;
+    //最初の手札の出力
+    ofs << "TEFUDA" << endl;
+    for(int j=0; j<mHands.size(); j++){
+        ofs << j << " " << mMibun[j] << " " << mSekijun[j] << " ";//プレイヤー番号と身分と席順
+
+        for(int k=0; k<4; k++){
+            for(int l=0; l<15; l++){
+                if(mHands[j][k][l]==1){
+                    ofs << suit[k] << rank[l-1] << " ";
+                }
+            }
+        }
+        if(mHands[j][4][1]!=0){
+            ofs << "JR";
+        } 
+        ofs << endl;
     }
-    ofs << endl;
-    for(int i=0; i<results.size(); i++){
-        //試合ごとresults[i]を見ていく
-        //最初の手札の出力
-        ofs << "TEFUDA" << endl;
-        for(int j=0; j<results[i].mHands.size(); j++){
-            ofs << j << " " << results[i].mMibun[j] << " " << results[i].mSekijun[j] << " ";//プレイヤー番号と身分と席順
-            /*
-            for(int k=0; k<5; k++){
-                for(int l=0; l<15; l++){
-                    if(results[i].mHands[j][k][l]==1){
-                        ofs << suit[k] << rank[l-1] << " ";
-                    }else if(results[i].mHands[j][k][l]==2){
-                        ofs << "JR ";
-                    }
-                }
-            }
-            */
-            for(int k=0; k<4; k++){
-                for(int l=0; l<15; l++){
-                    if(results[i].mHands[j][k][l]==1){
-                        ofs << suit[k] << rank[l-1] << " ";
-                    }
-                }
-            }
-            if(results[i].mHands[j][4][1]!=0){
-                ofs << "JR";
-            } 
-            ofs << endl;
+    //ofs << endl;
+    if( mChange.size() > 0 ){//交換が行われている
+        ofs << "CHANGE" << endl;
+        for(int j=0; j<mChange.size(); j++){
+            //前後で盤面の出力をさせてもよい
+            ofs << mChange[j].getStr() << endl;
         }
         //ofs << endl;
-        if( results[i].mChange.size() > 0 ){//交換が行われている
-            ofs << "CHANGE" << endl;
-            for(int j=0; j<results[i].mChange.size(); j++){
-                //前後で盤面の出力をさせてもよい
-                ofs << results[i].mChange[j].getStr() << endl;
-            }
-            //ofs << endl;
-            /*
-            ここで最終的な手札を出力させてもよい
-            */
-        }
-        
-        ofs << "HISTORY" << endl;
-        //一試合を一行で書き連ねる
-        for(int j=0; j<results[i].mHistory.size(); j++){
-            //各手各手を出力させていく
-            ofs << results[i].mHistory[j].mId;
-            ofs << results[i].mHistory[j].mYaku.getStr() << " ";
-        }
-        ofs << endl;
-        ofs << "MIBUN" << endl;//新しい身分（ゲームの結果）
-        for(int j=0; j<results[i].mHands.size(); j++){
-            ofs << j << " " << results[i].mAMibun[j] << endl;
-        }
-        ofs << endl;
+        /*
+        ここで最終的な手札を出力させてもよい
+        */
     }
-}
+    
+    ofs << "HISTORY" << endl;
+    //一試合を一行で書き連ねる
+    for(int j=0; j<mHistory.size(); j++){
+        //各手各手を出力させていく
+        ofs << mHistory[j].mId;
+        ofs << mHistory[j].mYaku.getStr() << " ";
+    }
+    ofs << endl;
+    ofs << "MIBUN" << endl;//新しい身分（ゲームの結果）
+    for(int j=0; j<mHands.size(); j++){
+        ofs << j << " " << mAMibun[j] << endl;
+    }
+    ofs << endl;
 
+}

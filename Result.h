@@ -72,17 +72,22 @@ public:
     Configure mConfig;
     
     void print();
+    void printOneGameReport( int num );
+    void writeHistory();
 };
 
 class Results{
 private:
-    vector<Result> results;
-    
+    int size;
+    //vector<Result> results;
+    vector< vector<int> > mMibun;//試合前の身分
+    vector< vector<int> > mAMibun;//試合後の身分
+
 public:
     Results( Players &players );
     vector<string> name;//各プレイヤーの名前
     
-    vector<int> tempScore;//中途得点
+    //vector<int> tempScore;//中途得点
     vector< vector<int> > score;//各プレイヤーの得点
     vector< vector< vector<int> > > transition;//各プレイヤーの身分の遷移
     
@@ -98,14 +103,14 @@ public:
     void clockEnd();
     
     //結果確認用
-    void printOneGameReport();
     void print();
     
     //結果ファイル出力用
     void writeScore();
     void writeTransition();
-    void writeHistory1();//暫定（適当）棋譜出力
-    void writeHistory2();//暫定（適当）棋譜出力
+    //void writeHistory1();//暫定（適当）棋譜出力
+    //void writeHistory2();//暫定（適当）棋譜出力
+    void writeHistory();
 };
 #endif
 

@@ -35,6 +35,10 @@ int main(int argc, char *argv[]){
     Results results( players );//試合の記録用クラス
     results.clockStart();//全試合の開始時間をメモる
     
+    #ifdef FILE_OUTPUT
+    results.writeHistory();
+    #endif
+    
     //全ゲーム
     for(int game_count=1; game_count<=config.GAME_NUM; game_count++){
         
@@ -71,9 +75,12 @@ int main(int argc, char *argv[]){
         }
         
         //結果を保存する
+        result.printOneGameReport( game_count );//一試合の結果をプリントする
         results.push_back( result );
-        results.printOneGameReport();//一試合の結果をプリントする
         //result.print();//手毎に振り替える
+        #ifdef FILE_OUTPUT
+        result.writeHistory();
+        #endif
     }
     
     results.clockEnd();//全試合の終了時間をメモって試合時間を確認する
@@ -91,7 +98,7 @@ int main(int argc, char *argv[]){
         cout << " file output start" << endl;
         results.writeScore();
         results.writeTransition();
-        results.writeHistory2();
+        //results.writeHistory2();
         cout << " file output done" << endl;
     }else{
         cout << "no output" <<endl;
